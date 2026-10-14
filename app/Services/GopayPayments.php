@@ -25,7 +25,7 @@ class GopayPayments {
   $success=in_array($status,['settlement','capture','paid','success'],true);
   $providerAmount=$d['gross_amount']??$d['grossAmount']??$d['amount']??null;
   $providerRef=$this->reference($result);
-  $verified=$success && $providerRef!==null && hash_equals($payment->provider_ref,$providerRef) && is_numeric($providerAmount) && (int)$providerAmount===(int)$payment->gross;
+  $verified=$success && $providerRef!==null && hash_equals($payment->provider_ref,$providerRef) && ExactIdrAmount::matches($providerAmount,(int)$payment->gross);
   DB::transaction(function()use($payment,$status,$verified){$locked=Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();if($locked->status!=='pending')return;
    $locked->provider_status=substr($status,0,60);$locked->last_checked_at=now();$locked->check_attempts++;$locked->next_check_at=now()->addMinute();
    if($verified){$balance=$this->wallet->balance($locked->user_id);$this->wallet->move($balance,'available',(int)$locked->net,'payment',$locked->id,'QRIS provider confirmed');$locked->status='success';$locked->paid_at=now();$locked->next_check_at=null;$this->wallet->audit(null,'qris.confirmed','payment',$locked->id,['provider_status'=>$status,'gross'=>$locked->gross,'fee'=>$locked->fee]);}
