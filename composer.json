@@ -1,6 +1,6 @@
 {
   "name": "ceirgo/rekgo",
-  "description": "RekGo V3 escrow management",
+  "description": "RekGo V4 escrow management development foundation",
   "type": "project",
   "require": {
     "php": "^8.2",
