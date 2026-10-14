@@ -10,6 +10,37 @@ html{scroll-behavior:smooth}body{font-size:15px;line-height:1.55}a,button{transi
 .rg-page-heading{margin:4px 0 22px}.rg-page-heading h1{font-size:clamp(26px,4vw,37px);letter-spacing:-.045em;line-height:1.2;margin:4px 0}.rg-page-heading p{margin:5px 0;color:var(--muted)}.rg-section-label{font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--muted);margin:26px 0 12px}.rg-dashboard-grid>section{align-self:start}.rg-dashboard-grid form button{max-width:100%}.rg-dashboard-grid .row{flex-wrap:wrap}.rg-balance-label{font-size:13px;opacity:.86}.rg-amount{font-size:clamp(28px,5vw,44px)!important;line-height:1.15;margin:8px 0 24px!important}.rg-stat-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.rg-stat-row>div{min-width:0}.rg-stat-row strong{display:block;font-size:clamp(12px,2vw,16px)!important;overflow-wrap:anywhere}.rg-history-section{margin-top:22px}.rg-history-section h2{padding-top:6px}.rg-history-section .scroll{margin-bottom:20px}
 @media(max-width:760px){.wrap{padding:16px 13px 112px}.grid{grid-template-columns:1fr;gap:14px}.glass{padding:20px}.tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}.tabs a{flex:none}.card{padding:23px;min-height:0}.rg-stat-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.rg-stat-row strong{font-size:12px!important}.rg-page-heading h1{font-size:28px}.nav{bottom:10px;width:calc(100% - 18px);border-radius:20px}.nav a{font-size:11px}.row{gap:9px}}
 @media(max-width:380px){.rg-stat-row{grid-template-columns:1fr}.rg-stat-row>div{display:flex;justify-content:space-between;gap:10px}.rg-stat-row strong{font-size:13px!important}.nav a{font-size:10px;padding:3px}}
+
+/* RekGo UI v5 — compact liquid-glass design */
+:root{--bg:#f4f7fc;--fg:#172c49;--muted:#6b7c92;--glass:rgba(255,255,255,.72);--line:rgba(112,148,194,.20);--blue:#1769f4;--shadow:0 8px 28px rgba(39,85,148,.075)}
+body{background:radial-gradient(ellipse 70% 30% at 10% 0%,rgba(67,145,255,.15),transparent 90%),radial-gradient(ellipse 65% 30% at 95% 35%,rgba(120,160,255,.10),transparent 90%),var(--bg);letter-spacing:-.01em}
+.wrap{max-width:1140px;padding-top:19px}
+.wrap>header{padding:7px 0 13px;border-bottom:1px solid var(--line);margin-bottom:24px!important}
+.logo{font-size:clamp(22px,3vw,27px);letter-spacing:-.05em}
+.wrap>header .row{gap:8px}.wrap>header button{min-height:39px;padding:9px 13px;border-radius:13px;font-size:13px}
+.glass{background:var(--glass);border:1px solid rgba(255,255,255,.84);box-shadow:0 6px 25px rgba(29,73,133,.075),inset 0 1px 0 rgba(255,255,255,.65);border-radius:21px;padding:23px;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.glass h2{font-size:19px;font-weight:760;letter-spacing:-.035em;margin-bottom:12px}.glass h3{letter-spacing:-.025em}
+.rg-page-heading{margin:6px 0 21px}.rg-page-heading h1{font-size:clamp(25px,3.5vw,34px);margin:6px 0 4px}.rg-page-heading p{font-size:13px;margin:4px 0}
+.grid{gap:15px}.grid>.glass{align-self:start}
+label{font-size:12px;font-weight:700;display:block;margin:15px 0 4px}
+input:not([type=checkbox]),select,textarea{border:1px solid rgba(107,143,188,.23);border-radius:13px;background:rgba(255,255,255,.62);min-height:44px;padding:11px 13px;margin:4px 0 10px;box-shadow:inset 0 1px 2px rgba(34,69,117,.025);font-size:14px}
+input[type=file]{min-height:44px;padding:9px!important;font-size:12px!important;max-width:100%}
+button,.btn{font-size:13px;font-weight:740;border-radius:12px;padding:11px 16px;min-height:42px;box-shadow:0 3px 9px rgba(23,105,244,.10)}
+button.secondary,.btn.secondary{background:rgba(75,126,196,.10);box-shadow:none}
+button:disabled{box-shadow:none}
+.glass form+form{margin-top:18px}.glass hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+.nav{bottom:calc(10px + env(safe-area-inset-bottom));width:min(96%,470px);border-radius:20px;padding:7px;box-shadow:0 9px 35px rgba(16,57,119,.17);background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.92)}
+.nav a{flex:1;text-align:center;border-radius:13px;padding:10px 4px;font-size:11px;font-weight:750;white-space:nowrap}
+.nav a:hover{background:rgba(39,116,233,.09);color:var(--blue)}
+.card{border-radius:24px;padding:25px;box-shadow:0 16px 35px rgba(17,88,196,.20)}
+.card h1{font-size:clamp(28px,4.5vw,42px)}
+table{min-width:490px}td,th{padding:11px 10px}th{font-size:11px}
+html[data-theme=dark]{--glass:rgba(18,42,73,.78);--line:rgba(112,157,210,.19);--shadow:0 8px 28px rgba(0,0,0,.20)}
+html[data-theme=dark] .glass{background:var(--glass);border-color:rgba(133,168,206,.15);box-shadow:0 8px 28px rgba(0,0,0,.20)}
+html[data-theme=dark] .nav{background:rgba(18,42,73,.91);border-color:rgba(133,168,206,.18)}
+html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,html[data-theme=dark] textarea{background:rgba(11,30,53,.72);border-color:rgba(133,168,206,.22)}
+@media(max-width:760px){.wrap{padding:12px 14px 105px}.wrap>header{margin-bottom:17px!important}.glass{padding:19px;border-radius:19px}.grid{gap:13px}.rg-page-heading{margin-bottom:18px}.rg-page-heading h1{font-size:27px}.rg-page-heading p{font-size:13px}.glass h2{font-size:18px}.nav{width:calc(100% - 24px)}.card{padding:21px}.card .rg-amount{font-size:31px!important}.wrap>header .row{flex-wrap:nowrap}.wrap>header button{padding:8px 11px}.logo{font-size:23px}}
+@media(prefers-reduced-motion:reduce){a,button{transition:none}}
 </style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>@auth <form action="/logout" method="post">@csrf<button class="secondary">Keluar</button></form>@endauth</div></header>@if(session('ok'))<div class="flash">{{session('ok')}}</div>@endif @if($errors->any())<div class="err">{{implode(' • ',$errors->all())}}</div>@endif @yield('content')</div>@auth<nav class="nav"><a href="/dashboard">⌂ Beranda</a><a href="/rekber">⇄ Rekber</a><a href="/history">◷ Riwayat</a><a href="/account">♙ Akun</a>@if(auth()->user()->isAdmin())<a href="/admin">⚙ Admin</a>@endif</nav>@endauth
 @auth
 @php
