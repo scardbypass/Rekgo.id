@@ -80,11 +80,11 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 @endauth
 @auth
 @php
-$announcement = null;
+$rekgoAnnouncement = null;
 try {
     if (\Illuminate\Support\Facades\Schema::hasTable('announcements')
         && \Illuminate\Support\Facades\Schema::hasTable('announcement_reads')) {
-        $announcement = \Illuminate\Support\Facades\DB::table('announcements')
+        $rekgoAnnouncement = \Illuminate\Support\Facades\DB::table('announcements')
             ->where('active', true)
             ->where(function ($q) { $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()); })
             ->where(function ($q) { $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()); })
@@ -94,12 +94,12 @@ try {
     }
 } catch (\Throwable $e) {
     \Illuminate\Support\Facades\Log::warning('Announcement lookup failed', ['error' => $e->getMessage()]);
-    $announcement = null;
+    $rekgoAnnouncement = null;
 }
 @endphp
-@if($announcement)
-<div id="rekgo-popup" role="dialog" aria-modal="true" aria-labelledby="rekgo-ann-title" style="position:fixed;inset:0;z-index:99;background:#061325bb;display:grid;place-items:center;padding:16px"><div class="glass" style="max-width:480px;width:100%;max-height:90vh;overflow:auto"><h2 id="rekgo-ann-title">{{$announcement->title}}</h2>@if($announcement->poster_path)<img src="{{asset('storage/'.$announcement->poster_path)}}" alt="Poster pengumuman" style="display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto;border-radius:15px">@endif<p style="white-space:pre-wrap">{{$announcement->body}}</p><button type="button" id="rekgo-dismiss">Mengerti</button></div></div>
-<script>document.getElementById('rekgo-dismiss').addEventListener('click',async()=>{let r=await fetch('/announcements/{{$announcement->id}}/dismiss',{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content,'Accept':'application/json'}});if(r.ok)document.getElementById('rekgo-popup').remove();});</script>
+@if(isset($rekgoAnnouncement) && $rekgoAnnouncement)
+<div id="rekgo-popup" role="dialog" aria-modal="true" aria-labelledby="rekgo-ann-title" style="position:fixed;inset:0;z-index:99;background:#061325bb;display:grid;place-items:center;padding:16px"><div class="glass" style="max-width:480px;width:100%;max-height:90vh;overflow:auto"><h2 id="rekgo-ann-title">{{$rekgoAnnouncement->title}}</h2>@if($rekgoAnnouncement->poster_path)<img src="{{asset('storage/'.$rekgoAnnouncement->poster_path)}}" alt="Poster pengumuman" style="display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto;border-radius:15px">@endif<p style="white-space:pre-wrap">{{$rekgoAnnouncement->body}}</p><button type="button" id="rekgo-dismiss">Mengerti</button></div></div>
+<script>document.getElementById('rekgo-dismiss').addEventListener('click',async()=>{let r=await fetch('/announcements/{{$rekgoAnnouncement->id}}/dismiss',{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content,'Accept':'application/json'}});if(r.ok)document.getElementById('rekgo-popup').remove();});</script>
 @endif
 @endauth
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script></body></html>
