@@ -58,7 +58,26 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 .card:after{animation:rgSheen 11s ease-in-out infinite}
 @media(max-width:760px){.rg-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.rg-admin-grid>a{min-height:119px;padding:15px}.rg-admin-grid>a h2{font-size:15px}.rg-admin-grid>a p{font-size:11px}.rg-admin-grid .rg-icon{width:34px;height:34px;font-size:19px}}
 @media(prefers-reduced-motion:reduce){.wrap main>.rg-page-heading,.wrap>.rg-page-heading,.wrap>.card,.wrap>.glass,.wrap>.grid,.wrap>.rg-section-label,.wrap>section{animation:none}.card:after{animation:none}.glass,.card{transition:none}}
-</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>@auth <form action="/logout" method="post">@csrf<button class="secondary">Keluar</button></form>@endauth</div></header>@if(session('ok'))<div class="flash">{{session('ok')}}</div>@endif @if($errors->any())<div class="err">{{implode(' • ',$errors->all())}}</div>@endif @yield('content')</div>@auth<nav class="nav"><a href="/dashboard">⌂ Beranda</a><a href="/transfer">↗ Transfer</a><a href="/history">◷ Riwayat</a><a href="/account">♙ Akun</a>@if(auth()->user()->isAdmin())<a href="/admin">⚙ Admin</a>@endif</nav>@endauth
+.nav a[aria-current="page"]{background:rgba(23,105,244,.13);color:var(--blue);font-weight:800}.rg-admin-nav{width:min(96%,550px)}.rg-admin-nav a{flex:1;text-align:center}@media(max-width:430px){.rg-admin-nav{width:calc(100% - 16px);padding:6px}.rg-admin-nav a{font-size:10px;padding:9px 2px}}</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>@auth <form action="/logout" method="post">@csrf<button class="secondary">Keluar</button></form>@endauth</div></header>@if(session('ok'))<div class="flash">{{session('ok')}}</div>@endif @if($errors->any())<div class="err">{{implode(' • ',$errors->all())}}</div>@endif @yield('content')</div>@auth
+@php($isAdminArea=request()->is('admin') || request()->is('admin/*'))
+@if($isAdminArea && auth()->user()->isAdmin())
+<nav class="nav rg-admin-nav" aria-label="Navigasi Admin">
+<a href="/admin" @if(request()->is('admin')) aria-current="page" @endif>⌂ Ringkasan</a>
+<a href="/admin/page/acc" @if(request()->is('admin/page/acc')) aria-current="page" @endif>↗ Pencairan</a>
+<a href="/admin/page/users" @if(request()->is('admin/page/users')) aria-current="page" @endif>♙ Pengguna</a>
+<a href="/admin/page/fee" @if(request()->is('admin/page/fee')) aria-current="page" @endif>◇ Fee</a>
+<a href="/dashboard">⇄ User</a>
+</nav>
+@else
+<nav class="nav" aria-label="Navigasi Pengguna">
+<a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⌂ Beranda</a>
+<a href="/transfer" @if(request()->is('transfer')) aria-current="page" @endif>↗ Transfer</a>
+<a href="/history" @if(request()->is('history')) aria-current="page" @endif>◷ Riwayat</a>
+<a href="/account" @if(request()->is('account')) aria-current="page" @endif>♙ Akun</a>
+@if(auth()->user()->isAdmin())<a href="/admin">⚙ Admin</a>@endif
+</nav>
+@endif
+@endauth
 @auth
 @php
 $announcement=null;
