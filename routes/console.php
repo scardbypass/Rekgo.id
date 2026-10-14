@@ -1,6 +1,8 @@
 <?php
 use Illuminate\Support\Facades\Schedule;
+// Schedule remains configured; command fails closed until retention safety is explicitly enabled.
 Schedule::command('rekgo:cleanup-proofs')->dailyAt('03:00')->timezone('Asia/Jakarta');
+
 \Illuminate\Support\Facades\Artisan::command('rekgo:poll-qris',function(){
  $pg=\Illuminate\Support\Facades\DB::table('payment_provider_settings')->where('provider','gopay_marc')->first();if(!$pg||!$pg->enabled)return;
  $service=app(\App\Services\GopayPayments::class);

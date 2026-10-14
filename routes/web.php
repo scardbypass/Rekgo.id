@@ -1,0 +1,35 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{AuthController,UserController,AdminController};
+Route::redirect('/','/dashboard');
+Route::middleware('guest')->group(function(){Route::get('/login',[AuthController::class,'loginForm'])->name('login');Route::post('/login',[AuthController::class,'login'])->middleware('throttle:8,1');Route::post('/register',[AuthController::class,'register'])->middleware('throttle:5,1');});
+Route::middleware('auth')->group(function(){
+ Route::post('/logout',[AuthController::class,'logout']);Route::get('/dashboard',[UserController::class,'dashboard']);Route::post('/profile/avatar',[UserController::class,'avatar']);Route::post('/profile/bank',[UserController::class,'bank']);Route::post('/profile/fee',[UserController::class,'settings']);Route::post('/withdrawals',[UserController::class,'withdraw'])->middleware('throttle:5,1');Route::post('/escrows',[UserController::class,'escrow'])->middleware('throttle:10,1');Route::post('/qris',[UserController::class,'qris'])->middleware('throttle:10,1');
+ Route::middleware('admin')->prefix('admin')->group(function(){Route::get('/',[AdminController::class,'dashboard']);Route::post('/withdrawals/{wd}/process',[AdminController::class,'process']);Route::post('/withdrawals/{wd}/success',[AdminController::class,'success']);Route::post('/withdrawals/{wd}/reject',[AdminController::class,'reject']);Route::get('/withdrawals/{wd}/proof',[AdminController::class,'proof']);Route::post('/admins',[AdminController::class,'addAdmin']);Route::post('/fees',[AdminController::class,'tier']);});
+});
+
+Route::middleware('auth')->post('/announcements/{id}/dismiss',[\App\Http\Controllers\V4AdminController::class,'dismiss'])->whereNumber('id');
+Route::middleware(['auth','admin'])->prefix('admin/v4')->group(function(){
+ Route::get('/',[\App\Http\Controllers\V4AdminController::class,'settings']);
+ Route::post('/maintenance',[\App\Http\Controllers\V4AdminController::class,'maintenance']);
+ Route::post('/announcements',[\App\Http\Controllers\V4AdminController::class,'createAnnouncement']);
+ Route::post('/announcements/{id}/toggle',[\App\Http\Controllers\V4AdminController::class,'toggleAnnouncement'])->whereNumber('id');
+ Route::post('/announcements/{id}/delete',[\App\Http\Controllers\V4AdminController::class,'deleteAnnouncement'])->whereNumber('id');
+});
+
+Route::middleware(['auth','admin'])->prefix('admin/integrations')->group(function(){
+ Route::get('/',[\App\Http\Controllers\IntegrationAdminController::class,'index']);
+ Route::post('/bots',[\App\Http\Controllers\IntegrationAdminController::class,'addBot']);
+ Route::post('/bots/{id}/toggle',[\App\Http\Controllers\IntegrationAdminController::class,'toggleBot'])->whereNumber('id');
+ Route::post('/pg',[\App\Http\Controllers\IntegrationAdminController::class,'savePg']);
+});
+
+Route::middleware(['auth','admin','throttle:5,1'])->prefix('admin/integrations')->group(function(){
+ Route::post('/pg/otp/request',[\App\Http\Controllers\IntegrationAdminController::class,'requestOtp']);
+ Route::post('/pg/otp/verify',[\App\Http\Controllers\IntegrationAdminController::class,'verifyOtp']);
+});
+
+Route::middleware('auth')->group(function(){
+ Route::get('/qris/{payment}',[\App\Http\Controllers\QrisController::class,'show'])->name('qris.show');
+ Route::get('/qris/{payment}/image.svg',[\App\Http\Controllers\QrisController::class,'image'])->name('qris.image');
+});
