@@ -1,0 +1,29 @@
+# Example only. Configure a valid Cloudflare Origin certificate and DNS first.
+# Copy to /etc/nginx/sites-available/rekgo.my.id and adjust paths.
+server {
+    listen 80;
+    server_name rekgo.my.id;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl http2;
+    server_name rekgo.my.id;
+    root /var/www/rekgo/public;
+    index index.php;
+    charset utf-8;
+    ssl_certificate /etc/ssl/rekgo/origin.pem;
+    ssl_certificate_key /etc/ssl/rekgo/origin.key;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    location / { try_files $uri $uri/ /index.php?$query_string; }
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+        internal;
+    }
+    location ~ /\.(?!well-known).* { deny all; }
+    location ~* \.(?:env|log|sql|bak|ini)$ { deny all; }
+    location ~ \.php$ { return 404; }
+}
