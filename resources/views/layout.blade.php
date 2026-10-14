@@ -58,7 +58,14 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 .card:after{animation:rgSheen 11s ease-in-out infinite}
 @media(max-width:760px){.rg-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.rg-admin-grid>a{min-height:119px;padding:15px}.rg-admin-grid>a h2{font-size:15px}.rg-admin-grid>a p{font-size:11px}.rg-admin-grid .rg-icon{width:34px;height:34px;font-size:19px}}
 @media(prefers-reduced-motion:reduce){.wrap main>.rg-page-heading,.wrap>.rg-page-heading,.wrap>.card,.wrap>.glass,.wrap>.grid,.wrap>.rg-section-label,.wrap>section{animation:none}.card:after{animation:none}.glass,.card{transition:none}}
-.nav a[aria-current="page"]{background:rgba(23,105,244,.13);color:var(--blue);font-weight:800}.rg-admin-nav{width:min(96%,550px)}.rg-admin-nav a{flex:1;text-align:center}@media(max-width:430px){.rg-admin-nav{width:calc(100% - 16px);padding:6px}.rg-admin-nav a{font-size:10px;padding:9px 2px}}</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>@auth <form action="/logout" method="post">@csrf<button class="secondary">Keluar</button></form>@endauth</div></header>@if(session('ok'))<div class="flash">{{session('ok')}}</div>@endif @if($errors->any())<div class="err">{{implode(' • ',$errors->all())}}</div>@endif @yield('content')</div>@auth
+.nav a[aria-current="page"]{background:rgba(23,105,244,.13);color:var(--blue);font-weight:800}.rg-admin-nav{width:min(96%,550px)}.rg-admin-nav a{flex:1;text-align:center}@media(max-width:430px){.rg-admin-nav{width:calc(100% - 16px);padding:6px}.rg-admin-nav a{font-size:10px;padding:9px 2px}}</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>@auth <form action="/logout" method="post">@csrf<button class="secondary">Keluar</button></form>
+@endauth</div></header>
+@if(session('ok'))<div class="flash">{{session('ok')}}</div>
+@endif
+@if($errors->any())<div class="err">{{implode(' • ',$errors->all())}}</div>
+@endif
+@yield('content')</div>
+@auth
 @php($isAdminArea=request()->is('admin') || request()->is('admin/*'))
 @if($isAdminArea && auth()->user()->isAdmin())
 <nav class="nav rg-admin-nav" aria-label="Navigasi Admin">
@@ -74,7 +81,8 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 <a href="/transfer" @if(request()->is('transfer')) aria-current="page" @endif>↗ Transfer</a>
 <a href="/history" @if(request()->is('history')) aria-current="page" @endif>◷ Riwayat</a>
 <a href="/account" @if(request()->is('account')) aria-current="page" @endif>♙ Akun</a>
-@if(auth()->user()->isAdmin())<a href="/admin">⚙ Admin</a>@endif
+@if(auth()->user()->isAdmin())<a href="/admin">⚙ Admin</a>
+@endif
 </nav>
 @endif
 @endauth
@@ -98,7 +106,10 @@ try {
 }
 @endphp
 @if(isset($rekgoAnnouncement) && $rekgoAnnouncement)
-<div id="rekgo-popup" role="dialog" aria-modal="true" aria-labelledby="rekgo-ann-title" style="position:fixed;inset:0;z-index:99;background:#061325bb;display:grid;place-items:center;padding:16px"><div class="glass" style="max-width:480px;width:100%;max-height:90vh;overflow:auto"><h2 id="rekgo-ann-title">{{$rekgoAnnouncement->title}}</h2>@if($rekgoAnnouncement->poster_path)<img src="{{asset('storage/'.$rekgoAnnouncement->poster_path)}}" alt="Poster pengumuman" style="display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto;border-radius:15px">@endif<p style="white-space:pre-wrap">{{$rekgoAnnouncement->body}}</p><button type="button" id="rekgo-dismiss">Mengerti</button></div></div>
+<div id="rekgo-popup" role="dialog" aria-modal="true" aria-labelledby="rekgo-ann-title" style="position:fixed;inset:0;z-index:99;background:#061325bb;display:grid;place-items:center;padding:16px"><div class="glass" style="max-width:480px;width:100%;max-height:90vh;overflow:auto"><h2 id="rekgo-ann-title">{{$rekgoAnnouncement->title}}</h2>
+@if($rekgoAnnouncement->poster_path)<img src="{{asset('storage/'.$rekgoAnnouncement->poster_path)}}" alt="Poster pengumuman" style="display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto;border-radius:15px">
+@endif
+<p style="white-space:pre-wrap">{{$rekgoAnnouncement->body}}</p><button type="button" id="rekgo-dismiss">Mengerti</button></div></div>
 <script>document.getElementById('rekgo-dismiss').addEventListener('click',async()=>{let r=await fetch('/announcements/{{$rekgoAnnouncement->id}}/dismiss',{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content,'Accept':'application/json'}});if(r.ok)document.getElementById('rekgo-popup').remove();});</script>
 @endif
 @endauth
