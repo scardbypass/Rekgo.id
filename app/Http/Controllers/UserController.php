@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 class UserController {
  public function dashboard(Request $r){$u=$r->user();$b=Balance::firstOrCreate(['user_id'=>$u->id]);return view('dashboard',['u'=>$u,'b'=>$b,'withdrawals'=>Withdrawal::where('user_id',$u->id)->latest()->limit(10)->get(),'escrows'=>Escrow::where('seller_id',$u->id)->latest()->limit(10)->get(),'payments'=>Payment::where('user_id',$u->id)->latest()->limit(10)->get()]);}
+ private function page(Request $r,string $page){$u=$r->user();return view('user-pages',['page'=>$page,'u'=>$u,'b'=>Balance::firstOrCreate(['user_id'=>$u->id]),'withdrawals'=>Withdrawal::where('user_id',$u->id)->latest()->limit(30)->get(),'escrows'=>Escrow::where('seller_id',$u->id)->latest()->limit(30)->get(),'payments'=>Payment::where('user_id',$u->id)->latest()->limit(30)->get()]);}
+ public function transfer(Request $r){return $this->page($r,'transfer');}
+ public function rekber(Request $r){return $this->page($r,'rekber');}
+ public function qrisPage(Request $r){return $this->page($r,'qris');}
+ public function history(Request $r){return $this->page($r,'history');}
+ public function account(Request $r){return $this->page($r,'account');}
  public function settings(Request $r,Wallet $w){$d=$r->validate(['fee_payer'=>'required|in:buyer,seller']);$r->user()->update($d);$w->audit($r->user()->id,'fee.preference','user',$r->user()->id,$d);return back()->with('ok','Preferensi fee diperbarui.');}
  public function avatar(Request $r,Wallet $w){$r->validate(['avatar'=>'required|image|mimes:jpeg,png,webp|max:2048']);$u=$r->user();$path=$r->file('avatar')->store('avatars','public');$old=$u->avatar_path;$u->update(['avatar_path'=>$path]);if($old)Storage::disk('public')->delete($old);$w->audit($u->id,'avatar.updated','user',$u->id);return back()->with('ok','Foto profil disimpan.');}
  public function bank(Request $r,Wallet $w){$d=$r->validate(['bank_code'=>'required|in:BCA,BRI,BNI,MANDIRI','bank_account'=>'required|digits_between:8,20']);$r->user()->update($d+['bank_name'=>null,'bank_verified_at'=>null]);$w->audit($r->user()->id,'bank.pending_verification','user',$r->user()->id,['bank_code'=>$d['bank_code']]);return back()->with('ok','Rekening tersimpan, belum terverifikasi. WD baru dinonaktifkan sampai inquiry bank berhasil.');}
