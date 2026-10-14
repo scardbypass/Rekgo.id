@@ -1,0 +1,36 @@
+name: RekGo V4 PHP checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, pdo_sqlite, sqlite3, bcmath, curl
+          coverage: none
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+      - name: PHP syntax lint
+        run: find app bootstrap config database routes tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Unit test strict provider amounts
+        run: ./vendor/bin/phpunit tests/Unit/ExactIdrAmountTest.php
+      - name: Laravel boot and route check
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          SESSION_DRIVER: array
+          CACHE_STORE: array
+        run: |
+          php artisan --version
+          php artisan route:list
