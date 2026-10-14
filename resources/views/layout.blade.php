@@ -80,9 +80,22 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 @endauth
 @auth
 @php
-$announcement=null;
-if(\Illuminate\Support\Facades\Schema::hasTable('announcements')){
-$announcement=\Illuminate\Support\Facades\DB::table('announcements')->where('active',true)->where(function($q){$q->whereNull('starts_at')->orWhere('starts_at','<=',now());})->where(function($q){$q->whereNull('ends_at')->orWhere('ends_at','>=',now());})->whereNotIn('id',\Illuminate\Support\Facades\DB::table('announcement_reads')->where('user_id',auth()->id())->select('announcement_id'))->latest()->first();}
+$announcement = null;
+try {
+    if (\Illuminate\Support\Facades\Schema::hasTable('announcements')
+        && \Illuminate\Support\Facades\Schema::hasTable('announcement_reads')) {
+        $announcement = \Illuminate\Support\Facades\DB::table('announcements')
+            ->where('active', true)
+            ->where(function ($q) { $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()); })
+            ->where(function ($q) { $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()); })
+            ->whereNotIn('id', \Illuminate\Support\Facades\DB::table('announcement_reads')
+                ->where('user_id', auth()->id())->select('announcement_id'))
+            ->latest()->first();
+    }
+} catch (\Throwable $e) {
+    \Illuminate\Support\Facades\Log::warning('Announcement lookup failed', ['error' => $e->getMessage()]);
+    $announcement = null;
+}
 @endphp
 @if($announcement)
 <div id="rekgo-popup" role="dialog" aria-modal="true" aria-labelledby="rekgo-ann-title" style="position:fixed;inset:0;z-index:99;background:#061325bb;display:grid;place-items:center;padding:16px"><div class="glass" style="max-width:480px;width:100%;max-height:90vh;overflow:auto"><h2 id="rekgo-ann-title">{{$announcement->title}}</h2>@if($announcement->poster_path)<img src="{{asset('storage/'.$announcement->poster_path)}}" alt="Poster pengumuman" style="display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto;border-radius:15px">@endif<p style="white-space:pre-wrap">{{$announcement->body}}</p><button type="button" id="rekgo-dismiss">Mengerti</button></div></div>
