@@ -1,0 +1,52 @@
+name: RekGo MySQL smoke
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: rekgo_test
+          MYSQL_USER: rekgo
+          MYSQL_PASSWORD: test_only_password
+          MYSQL_ROOT_PASSWORD: root_test_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_test_only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_DATABASE: rekgo_test
+      DB_USERNAME: rekgo
+      DB_PASSWORD: test_only_password
+      SESSION_DRIVER: array
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      GOPAY_LIVE_VERIFIED: 'false'
+      REKGO_PROOF_CLEANUP_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, pdo_mysql, bcmath, curl
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: MySQL schema migrations
+        run: php artisan migrate --force --no-interaction
+      - name: Laravel routes
+        run: php artisan route:list
+      - name: Strict QRIS amount unit tests
+        run: ./vendor/bin/phpunit tests/Unit/ExactIdrAmountTest.php
