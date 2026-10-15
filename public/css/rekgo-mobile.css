@@ -30,3 +30,15 @@
 @media(max-width:700px){.rg-page-title h1{font-size:27px}.rg-history-card{padding:15px!important}.rg-history-head{gap:9px}.rg-history-symbol{width:37px;height:37px;border-radius:12px;font-size:20px}.rg-history-heading h2{font-size:16px}.rg-history-heading p{font-size:11px}.rg-action-link{padding:9px 10px;font-size:11px}.rg-history-empty{padding:13px 8px 2px}.rg-history-stack{gap:11px}.rg-history-tabs{gap:7px}.rg-history-tabs a{padding:9px 11px}}
 @media(max-width:360px){.rg-history-symbol{display:none}.rg-action-link{padding:8px}.rg-history-heading h2{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.nav a{transition:none}}
+
+.rg-wallet{min-height:0!important;padding:22px!important}.rg-wallet-caption{margin:16px 0 4px;font-size:13px}.rg-wallet .rg-amount{margin:0 0 22px!important}
+.rg-wallet-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-top:1px solid #ffffff50;padding-top:15px}
+.rg-wallet-stats small,.rg-wallet-stats strong{display:block;overflow-wrap:anywhere}.rg-wallet-stats small{font-size:11px;opacity:.8}.rg-wallet-stats strong{font-size:13px}
+.rg-section-heading{margin:22px 0 12px}.rg-section-heading h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rg-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.rg-shortcuts>a{min-width:0;display:flex;align-items:center;flex-direction:column;text-align:center;gap:4px;padding:15px 6px;background:var(--glass);border:1px solid var(--line);border-radius:17px;text-decoration:none;color:var(--fg)}
+.rg-shortcuts strong{font-size:13px}.rg-shortcuts small{font-size:10px;color:var(--muted)}
+.rg-shortcut-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#1769f422;color:var(--blue);font-size:23px;margin-bottom:5px}
+.rg-dashboard-activity{margin-top:18px}.rg-dashboard-activity-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.rg-dashboard-activity-head h2{margin:0!important}.rg-dashboard-activity-head p{margin:3px 0 0}
+@media(max-width:700px){.rg-shortcuts{gap:7px}.rg-shortcuts>a{padding:12px 2px}.rg-shortcuts strong{font-size:12px}.rg-shortcut-icon{width:36px;height:36px}.rg-wallet{padding:18px!important}.rg-dashboard-activity-head h2{font-size:17px}}
+@media(max-width:360px){.rg-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}
