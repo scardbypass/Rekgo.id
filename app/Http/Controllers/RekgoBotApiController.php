@@ -4,7 +4,6 @@ use App\Models\{User,Escrow};
 use App\Services\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 class RekgoBotApiController {
  private function authorizeBot(Request $r):void {
   $key=(string)config('services.rekgo_bot.key','');
@@ -16,8 +15,8 @@ class RekgoBotApiController {
   $result=DB::transaction(function()use($d,$wallet){
    $existing=DB::table('rekgo_bot_requests')->where('request_id',$d['request_id'])->first();
    if($existing){abort_unless($existing->group_jid===$d['group_jid'] && $existing->seller_jid===$d['seller_jid'],409,'Request ID conflict');return Escrow::findOrFail($existing->escrow_id);}
-   $phone=ltrim($d['seller_phone'],'0');
-   $user=User::where('phone',$d['seller_phone'])->orWhere('phone','+'.$d['seller_phone'])->first();
+   $phone=preg_replace('/^62/','0',$d['seller_phone']);
+   $user=User::whereIn('phone',array_unique([$d['seller_phone'],'+'.$d['seller_phone'],$phone]))->first();
    abort_unless($user && !$user->suspended_at,422,'Nomor WhatsApp seller belum terdaftar atau akun nonaktif.');
    $fee=$wallet->fee('escrow',$d['amount']);
    abort_if($fee<=0,422,'Tarif rekber untuk nominal ini belum dikonfigurasi.');
