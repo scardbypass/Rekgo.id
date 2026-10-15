@@ -14,3 +14,18 @@ Implementation checklist:
 6. Only enable live acceptance after controlled end-to-end tests on the actual merchant account.
 
 Do not log credentials, bearer tokens or complete QRIS secrets.
+
+## Mengisi akun merchant GoPay / GoBiz
+
+Masuk sebagai Super Admin RekGo, lalu buka **Admin → Integrasi → GoPay**. Isi email merchant dan password pada formulir kredensial, kemudian simpan. Kredensial disimpan terenkripsi pada disk lokal Laravel, bukan di repository. Pastikan akun merchant benar-benar memiliki akses jurnal dan merchant ID yang sesuai. Untuk QRIS statis, masukkan QRIS Text merchant yang lengkap dan lolos pemeriksaan CRC. Jangan memasukkan token, password, atau QRIS sensitif ke commit Git.
+
+Konfigurasi koneksi adapter melalui environment privat VPS:
+
+- `GOPAY_BRIDGE_URL`: alamat service bridge internal (default `http://127.0.0.1:4319`).
+- `GOPAY_BRIDGE_KEY`: secret Bearer acak minimal 32 karakter; sama di website dan bridge.
+- `REKGO_BOT_API_KEY`: kunci khusus bot, **berbeda** dari bridge.
+- `REKGO_GOPAY_LIVE_VERIFIED`: jangan diaktifkan sebelum end-to-end reconciliation berhasil.
+
+Modul CeirGo yang dilampirkan menggunakan `GOPAY_EMAIL`, `GOPAY_PASSWORD`, `GOPAY_ACCESS_TOKEN`, `GOPAY_REFRESH_TOKEN`, dan `GOPAY_MERCHANT_ID` pada penyimpanan konfigurasi internalnya. Login dilakukan dengan password, lalu refresh token saat diperlukan; transaksi masuk dicari pada jurnal berdasarkan merchant, waktu dan nominal (nominal jurnal dalam satuan 1/100 rupiah).
+
+**Perbedaan penting:** RekGo `GopayPayments` saat ini meminta bridge `create`, `status`, `cancel`; modul CeirGo hanya menyediakan login dan pencarian jurnal. Adapter tersebut belum bisa langsung menggantikan kontrak lama. Tidak aman untuk menganggap satu kecocokan nominal sebagai bukti pembayaran invoice tertentu. Jangan gunakan sistem ini untuk dana sungguhan sebelum identitas invoice unik, penguncian klaim jurnal secara atomik, dan verifikasi rekonsiliasi selesai.
