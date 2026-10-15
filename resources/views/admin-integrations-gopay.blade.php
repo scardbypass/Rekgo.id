@@ -1,20 +1,33 @@
 @extends('layout')
 @section('content')
-<div class="rg-page-heading"><p>RekGo • Admin Center</p><h1>GoPay Merchant</h1><p>Konfigurasi QRIS dan pengecekan transaksi merchant.</p></div>
+<div class="rg-page-heading"><p>RekGo • Admin Center</p><h1>GoPay Merchant</h1><p>Kelola akun GoBiz, QRIS statis, dan pengaturan pengecekan pembayaran.</p></div>
 <p><a class="btn secondary" href="/admin/integrations">← Semua Integrasi</a></p>
-<section class="glass"><h2>Pengaturan Payment Gateway</h2>
-<p><span class="pill">{{ config('rekgo.gopay_live_verified') ? 'Verifikasi server aktif' : 'Mode aman · Live terkunci' }}</span></p>
-<p class="muted small">Integrasi QRIS statis dengan nominal unik masih memerlukan adapter jurnal GoPay yang telah diuji. Pengaturan ini belum mengaktifkan pembayaran otomatis.</p>
+<div class="grid rg-admin-grid">
+<div class="glass"><span class="rg-icon">◇</span><h3>Akun GoBiz</h3><p class="muted">{{ $credentials_saved ? 'Kredensial tersimpan secara terenkripsi' : 'Belum dikonfigurasi' }}</p></div>
+<div class="glass"><span class="rg-icon">◷</span><h3>Transaksi Otomatis</h3><p class="muted">{{ $pg && $pg->enabled ? 'Pengaturan aktif' : 'Belum aktif' }} · Belum terverifikasi live</p></div>
+</div>
+<div class="gap"></div>
+<section class="glass"><h2>1. Koneksi Akun GoBiz</h2>
+<p class="muted small">Masukkan email dan password merchant. Informasi disimpan terenkripsi pada storage privat server, bukan ditampilkan di browser. Penyimpanan ini belum melakukan login ke provider.</p>
+<form method="post" action="/admin/integrations/gopay/credentials">@csrf
+<label for="gobiz-email">GoBiz Email</label><input id="gobiz-email" type="email" name="email" required maxlength="254" autocomplete="username" placeholder="merchant@example.com" value="{{ old('email') }}">
+<label for="gobiz-password">GoBiz Password</label><input id="gobiz-password" type="password" name="password" {{ $credentials_saved ? '' : 'required' }} maxlength="512" autocomplete="new-password" placeholder="{{ $credentials_saved ? 'Kosongkan jika tidak ingin mengganti' : 'Password merchant' }}">
+<button type="submit">Simpan Kredensial Aman</button></form>
+<p class="muted small">Login dan refresh token memerlukan adapter GoBiz yang sesuai dan pengujian akun. Jangan memasukkan OTP di halaman yang belum terhubung.</p></section>
+<div class="gap"></div>
+<section class="glass"><h2>2. Pengaturan QRIS Statis</h2>
+<p><span class="pill">{{ config('rekgo.gopay_live_verified') ? 'Server ditandai terverifikasi' : 'Live terkunci untuk keamanan' }}</span></p>
+<p class="muted small">Mode QRIS statis + nominal unik sedang dipersiapkan. Jangan mengaktifkan transaksi live sebelum QRIS merchant dan rekonsiliasi jurnal terbukti sesuai.</p>
 <form method="post" action="/admin/integrations/pg">@csrf
-<label><input type="checkbox" name="enabled" value="1" style="width:auto" {{ $pg&&$pg->enabled?'checked':'' }}> Aktifkan pembayaran live setelah verifikasi</label>
-<label><input type="checkbox" name="on_demand" value="1" style="width:auto" {{ !$pg||$pg->on_demand?'checked':'' }}> Cek hanya ketika ada tagihan</label>
-<label>Merchant ID</label><input name="merchant_id" value="{{ $pg->merchant_id??'' }}" maxlength="150">
-<label>Interval pengecekan</label><select name="poll_seconds">@foreach([30,60,120] as $s)<option value="{{ $s }}" {{ ($pg->poll_seconds??60)==$s?'selected':'' }}>{{ $s }} detik</option>@endforeach</select>
-<label>Batas waktu tagihan (menit)</label><input name="expiry_minutes" type="number" min="5" max="60" value="{{ $pg->expiry_minutes??10 }}">
-<button type="submit">Simpan Pengaturan</button></form></section>
-<div class="gap"></div><section class="glass"><h2>Koneksi Akun Merchant</h2>
-<p class="muted small">Form OTP di bawah memerlukan bridge terotorisasi. Jangan masukkan password Gmail di RekGo.</p>
-<form method="post" action="/admin/integrations/pg/otp/request">@csrf<label>Nomor Merchant (62...)</label><input name="phone" required pattern="62[0-9]{8,13}"><button type="submit">Minta OTP</button></form>
-<form method="post" action="/admin/integrations/pg/otp/verify">@csrf<label>Kode OTP</label><input name="otp" required maxlength="8" autocomplete="one-time-code"><button type="submit">Verifikasi OTP</button></form>
+<label>Merchant ID</label><input name="merchant_id" value="{{ $pg->merchant_id??'' }}" maxlength="150" placeholder="ID merchant resmi">
+<label>Interval cek jurnal</label><select name="poll_seconds">@foreach([30,60,120] as $s)<option value="{{ $s }}" {{ ($pg->poll_seconds??60)==$s?'selected':'' }}>{{ $s }} detik</option>@endforeach</select>
+<label>Batas waktu pembayaran (menit)</label><input name="expiry_minutes" type="number" min="5" max="60" value="{{ $pg->expiry_minutes??10 }}">
+<label><input type="checkbox" name="on_demand" value="1" style="width:auto" {{ !$pg||$pg->on_demand?'checked':'' }}> Periksa hanya ketika ada tagihan</label>
+<label><input type="checkbox" name="enabled" value="1" style="width:auto" {{ $pg&&$pg->enabled?'checked':'' }}> Aktifkan pembayaran live setelah uji berhasil</label>
+<button type="submit">Simpan Pengaturan QRIS</button></form></section>
+<div class="gap"></div>
+<section class="glass"><h2>3. Status & Monitoring</h2>
+<p class="muted small">Koneksi provider: belum diuji · Token TTL: belum tersedia · Sinkronisasi jurnal: belum tersedia.</p>
+<p class="muted small">Tidak ada status online atau transaksi berhasil yang ditampilkan sebelum ada respons nyata dari adapter GoBiz.</p>
 </section>
 @endsection
