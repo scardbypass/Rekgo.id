@@ -13,7 +13,15 @@ async function api(path,payload){
 }
 async function run(){
  const {state,saveCreds}=await useMultiFileAuthState(authDir);
- const sock=makeWASocket({auth:state,logger:pino({level:'warn'}),printQRInTerminal:true});
+ const sock=makeWASocket({auth:state,logger:pino({level:'warn'}),printQRInTerminal:!process.env.REKGO_PAIR_PHONE});
+ if(process.env.REKGO_PAIR_PHONE && !state.creds.registered){
+  const phone=process.env.REKGO_PAIR_PHONE.replace(/\\D/g,'');
+  if(!/^62[0-9]{8,13}$/.test(phone))throw Error('REKGO_PAIR_PHONE must start with 62');
+  setTimeout(async()=>{
+   try{const code=await sock.requestPairingCode(phone);console.log('WhatsApp pairing code:',code);}
+   catch(error){console.error('Pairing request failed:',error.message);}
+  },2500);
+ }
  sock.ev.on('creds.update',saveCreds);
  sock.ev.on('connection.update',({connection,lastDisconnect})=>{
   if(connection==='close' && lastDisconnect?.error?.output?.statusCode!==DisconnectReason.loggedOut)setTimeout(run,3000);
