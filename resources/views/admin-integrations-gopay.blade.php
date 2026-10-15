@@ -6,7 +6,7 @@
 <section class="glass"><strong>Pengaturan belum tersimpan</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></section><div class="gap"></div>
 @endif
 @if(session('ok'))<section class="glass">{{ session('ok') }}</section><div class="gap"></div>@endif
-<section class="glass"><h2>Mode Uji Live Khusus Super Admin</h2><p class="muted small">Lihat QRIS merchant asli untuk mencoba pembayaran manual. Tidak membuat tagihan, tidak mengkredit saldo, dan tidak mengaktifkan deposit pengguna.</p><a class="btn secondary" href="{{ route('admin.gopay.test') }}">Buka Mode Uji QRIS →</a></section><div class="gap"></div>\n<div class="grid rg-admin-grid">
+<section class="glass"><h2>Diagnostik QRIS Khusus Super Admin</h2><p class="muted small">Halaman diagnostik untuk admin. Pembayaran pengguna nantinya diperiksa otomatis oleh scheduler; tidak perlu klik cek pembayaran. Diagnostik ini tidak mengkredit saldo.</p><a class="btn secondary" href="{{ route('admin.gopay.test') }}">Buka Diagnostik QRIS →</a></section><div class="gap"></div>\n<div class="grid rg-admin-grid">
 <div class="glass"><span class="rg-icon">◇</span><h3>Akun GoBiz</h3><p class="muted">{{ $credentials_saved ? 'Kredensial tersimpan secara terenkripsi' : 'Belum dikonfigurasi' }}</p></div>
 <div class="glass"><span class="rg-icon">◷</span><h3>Transaksi Otomatis</h3><p class="muted">{{ $pg && $pg->enabled ? 'Pengaturan aktif' : 'Belum aktif' }} · Belum terverifikasi live</p></div>
 </div>
@@ -18,7 +18,7 @@
 <label for="gobiz-password">GoBiz Password</label><input id="gobiz-password" type="password" name="password" {{ $credentials_saved ? '' : 'required' }} maxlength="512" autocomplete="new-password" placeholder="{{ $credentials_saved ? 'Kosongkan jika tidak ingin mengganti' : 'Password merchant' }}">
 <label><input type="checkbox" style="width:auto" onclick="document.getElementById('gobiz-password').type=this.checked?'text':'password'"> Tampilkan password saat mengetik</label>
 <button type="submit">Simpan Akun GoBiz</button></form>
-<p class="muted small">Langkah: (1) Masukkan email GoBiz, (2) masukkan password, (3) klik Simpan Akun GoBiz, (4) tempel QRIS Text merchant pada bagian 3, (5) jalankan pengujian khusus Super Admin. Token dan pengecekan jurnal otomatis belum terhubung; jangan mengaktifkan live sebelum berhasil diuji.</p></section>
+<p class="muted small">Langkah: (1) Masukkan email GoBiz, (2) masukkan password, (3) klik Simpan Akun GoBiz, (4) tempel QRIS Text merchant pada bagian 3, (5) pastikan service GoBiz dan scheduler sudah terhubung. Pengecekan otomatis belum aktif sampai adapter jurnal terpasang dan diuji.</p></section>
 <div class="gap"></div>
 <section class="glass"><h2>2. Pengaturan QRIS Statis</h2>
 <p><span class="pill">{{ config('rekgo.gopay_live_verified') ? 'Server ditandai terverifikasi' : 'Live terkunci untuk keamanan' }}</span></p>
