@@ -5,6 +5,14 @@ use App\Services\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class RekgoBotApiController {
+ private function registeredUser(string $phone):User {
+  $digits=preg_replace('/\\D+/','',$phone);
+  $local=str_starts_with($digits,'62')?'0'.substr($digits,2):$digits;
+  $international=str_starts_with($local,'0')?'62'.substr($local,1):$local;
+  $user=User::whereIn('phone',array_unique([$local,$international,'+'.$international]))->first();
+  abort_unless($user && !$user->suspended_at,403,'Nomor WhatsApp belum terdaftar di RekGo. Daftar terlebih dahulu di https://rekgo.my.id/login#daftar');
+  return $user;
+ }
  private function authorizeBot(Request $r):void {
   $key=(string)config('services.rekgo_bot.key','');
   abort_unless(strlen($key)>=32 && hash_equals($key,(string)$r->bearerToken()),401);
@@ -15,9 +23,7 @@ class RekgoBotApiController {
   $result=DB::transaction(function()use($d,$wallet){
    $existing=DB::table('rekgo_bot_requests')->where('request_id',$d['request_id'])->first();
    if($existing){abort_unless($existing->group_jid===$d['group_jid'] && $existing->seller_jid===$d['seller_jid'],409,'Request ID conflict');return Escrow::findOrFail($existing->escrow_id);}
-   $phone=preg_replace('/^62/','0',$d['seller_phone']);
-   $user=User::whereIn('phone',array_unique([$d['seller_phone'],'+'.$d['seller_phone'],$phone]))->first();
-   abort_unless($user && !$user->suspended_at,422,'Nomor WhatsApp seller belum terdaftar atau akun nonaktif.');
+   $user=$this->registeredUser($d['seller_phone']);
    $fee=$wallet->fee('escrow',$d['amount']);
    abort_if($fee<=0,422,'Tarif rekber untuk nominal ini belum dikonfigurasi.');
    $escrow=Escrow::create(['seller_id'=>$user->id,'title'=>'RekGo WhatsApp · '.$d['request_id'],'amount'=>$d['amount'],'fee'=>$fee,'fee_payer'=>$user->fee_payer,'status'=>'pending','expires_at'=>now()->addDay()]);
@@ -29,12 +35,14 @@ class RekgoBotApiController {
  }
  public function done(Request $r,Wallet $wallet){
   $this->authorizeBot($r);
-  $d=$r->validate(['group_jid'=>'required|string|max:150','buyer_jid'=>'required|string|max:150']);
+  $d=$r->validate(['group_jid'=>'required|string|max:150','buyer_jid'=>'required|string|max:150','buyer_phone'=>'required|regex:/^[0-9]{9,16}$/']);
+  $buyer=$this->registeredUser($d['buyer_phone']);
   $record=DB::table('rekgo_bot_requests')->where('group_jid',$d['group_jid'])->orderByDesc('id')->first();
   abort_unless($record,404,'Tidak ada transaksi di grup ini.');
+  abort_if($buyer->id===$record->seller_id,403,'Seller tidak boleh mengonfirmasi transaksi sendiri.');
   $escrow=Escrow::findOrFail($record->escrow_id);
   abort_unless($escrow->status==='paid',409,'Pembayaran belum terverifikasi atau status transaksi tidak sesuai.');
-  $wallet->audit(null,'bot.buyer_done_requested','escrow',$escrow->id,['buyer_jid'=>$d['buyer_jid']]);
+  $wallet->audit(null,'bot.buyer_done_requested','escrow',$escrow->id,['buyer_jid'=>$d['buyer_jid'],'buyer_id'=>$buyer->id]);
   return response()->json(['id'=>$escrow->id,'status'=>$escrow->status,'message'=>'Permintaan selesai dicatat untuk pemeriksaan admin. Dana belum dicairkan.']);
  }
 }
