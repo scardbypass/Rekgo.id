@@ -12,5 +12,13 @@
 <p><strong>Nominal uji: Rp1.001</strong> — seharusnya muncul otomatis jika aplikasi bank dan acquirer mendukung. Jika nominal tidak muncul atau berbeda, batalkan pembayaran. Periksa nama merchant sebelum konfirmasi.</p>
 <p class="rg-inline-notice"><strong>Perhatian:</strong> pembayaran ini menggunakan uang sungguhan. QRIS ini hanya untuk uji kompatibilitas payload, belum membuat tagihan unik, belum memeriksa jurnal GoPay, dan <strong>tidak menambah saldo RekGo</strong>. Jangan gunakan untuk deposit pelanggan. Periksa mutasi langsung di akun merchant setelah membayar.</p>
 @endif
+<hr style="margin:24px 0;border:0;border-top:1px solid var(--line)">
+<h3>Cek Status Pembayaran</h3>
+<p class="muted small">Masukkan referensi transaksi dari struk bank. Pengecekan hanya berhasil jika adapter GoPay mendukung pencarian referensi ini. Ini bukan pembacaan otomatis jurnal merchant.</p>
+<form method="post" action="{{ route('admin.gopay.test.check') }}">@csrf
+<label for="test-reference">Referensi transaksi</label><input id="test-reference" name="reference" type="text" required maxlength="150" pattern="[A-Za-z0-9_.:-]{8,150}" placeholder="Referensi dari struk pembayaran" value="{{ old('reference') }}">
+<button type="submit">Cek Status Pembayaran</button>
+</form>
+@if(session('check_result'))<p class="rg-inline-notice" role="status">{{ session('check_result') }}</p>@endif
 </section>
 @endsection
