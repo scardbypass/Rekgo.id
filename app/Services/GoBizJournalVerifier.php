@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 final class GoBizJournalVerifier
 {
-    public function candidate(int $paymentId, int $grossIdr, array $entries, string $merchantId): array
+    public function candidate(int $paymentId, int $grossIdr, array $entries, string $merchantId, \DateTimeInterface $from, \DateTimeInterface $until): array
     {
         $matches = [];
         foreach ($entries as $entry) {
@@ -16,6 +16,10 @@ final class GoBizJournalVerifier
             if (!is_string($ref) || $ref === '') continue;
             if ((string) ($tx['merchant_id'] ?? '') !== $merchantId) continue;
             if (!is_numeric($tx['gross_amount'] ?? null)) continue;
+            $time = $tx['transaction_time'] ?? null;
+            if (!is_string($time)) continue;
+            try { $at = new \DateTimeImmutable($time); } catch (\Throwable $e) { continue; }
+            if ($at < $from || $at > $until) continue;
             if ((int) $tx['gross_amount'] !== $grossIdr * 100) continue;
             $matches[$ref] = $ref;
         }
@@ -24,6 +28,6 @@ final class GoBizJournalVerifier
         if (DB::table('payments')->where('provider_ref', $ref)->where('id', '!=', $paymentId)->exists()) {
             return ['matched' => false, 'reason' => 'reference_already_used'];
         }
-        return ['matched' => true, 'reference' => $ref, 'requires_atomic_settlement' => true];
+        return ['matched' => false, 'reference' => $ref, 'reason' => 'requires_authenticated_journal_and_atomic_settlement'];
     }
 }
