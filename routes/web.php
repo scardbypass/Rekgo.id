@@ -44,3 +44,8 @@ Route::middleware(['auth','admin','throttle:10,1'])->group(function(){
  Route::post('/admin/integrations/gopay/live-test/check',[\App\Http\Controllers\GoPayLiveTestController::class,'check'])->name('admin.gopay.test.check');
  Route::get('/admin/integrations/gopay/live-test/image.svg',[\App\Http\Controllers\GoPayLiveTestController::class,'image'])->name('admin.gopay.test.image');
 });
+
+Route::middleware(['auth','admin','throttle:10,1'])->group(function(){
+ Route::get('/admin/bank-provider',[\App\Http\Controllers\BankProviderSettingsController::class,'index']);
+ Route::post('/admin/bank-provider',[\App\Http\Controllers\BankProviderSettingsController::class,'save']);
+});
