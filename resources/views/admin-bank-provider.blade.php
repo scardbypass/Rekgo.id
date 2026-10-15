@@ -1,5 +1,9 @@
 @extends('layout')
 @section('content')
+@php
+$defaultRequestJson = json_encode(['bank_code' => '{bank_code}', 'account_number' => '{account_number}'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+$defaultResponseJson = json_encode(['success' => true, 'data' => ['account_name' => 'NAMA PENERIMA', 'account_number' => '1234567890', 'bank_code' => 'BCA']], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+@endphp
 <div class="rg-page-heading"><p>REKGO · ADMIN CENTER</p><h1>Verifikasi API Bank</h1><p>Konfigurasi provider pihak ketiga dengan request dan respons JSON yang berbeda-beda.</p></div>
 <p><a class="btn secondary" href="/admin">← Dashboard Admin</a></p>
 <section class="glass">
@@ -27,11 +31,11 @@
 <p class="muted small">Contoh placeholder yang dapat dipetakan nanti: <code>{{ '{bank_code}' }}</code> dan <code>{{ '{account_number}' }}</code>. Jangan menaruh password dalam contoh JSON.</p>
 <label for="bp-headers">Header tambahan (JSON)</label><textarea id="bp-headers" name="headers_json" rows="3" style="font-family:monospace" placeholder='{"Accept":"application/json"}'>{{ old('headers_json',$settings['headers_json']??'{"Accept":"application/json"}') }}</textarea>
 <label for="bp-query">Query parameter (JSON)</label><textarea id="bp-query" name="query_json" rows="3" style="font-family:monospace" placeholder='{"service":"bank_inquiry"}'>{{ old('query_json',$settings['query_json']??'{}') }}</textarea>
-<label for="bp-request">Request Body (JSON)</label><textarea id="bp-request" name="request_example" rows="5" required style="font-family:monospace">{{ old('request_example',$settings['request_example']??'{"bank_code":"{bank_code}","account_number":"{account_number}"}') }}</textarea>
+<label for="bp-request">Request Body (JSON)</label><textarea id="bp-request" name="request_example" rows="5" required style="font-family:monospace">{{ old('request_example', $settings['request_example'] ?? $defaultRequestJson) }}</textarea>
 <hr>
 <h3>4. Contoh Respons & Mapping JSON</h3>
 <p class="muted small">Tempel respons contoh dari dokumentasi penyedia. Setiap field dapat berbeda; gunakan path bertitik, misalnya <code>data.account_name</code> atau <code>result.name</code>.</p>
-<label for="bp-response">Contoh Response JSON</label><textarea id="bp-response" name="response_example" rows="7" required style="font-family:monospace">{{ old('response_example',$settings['response_example']??'{"success":true,"data":{"account_name":"NAMA PENERIMA","account_number":"1234567890","bank_code":"BCA"}}') }}</textarea>
+<label for="bp-response">Contoh Response JSON</label><textarea id="bp-response" name="response_example" rows="7" required style="font-family:monospace">{{ old('response_example', $settings['response_example'] ?? $defaultResponseJson) }}</textarea>
 <div class="grid rg-settings-grid">
 <div><label>Path status</label><input name="status_path" required value="{{ old('status_path',$settings['status_path']??'success') }}"></div>
 <div><label>Nilai status sukses</label><input name="success_value" required value="{{ old('success_value',$settings['success_value']??'true') }}"></div>
