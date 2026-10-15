@@ -4,6 +4,7 @@
 <section class="card rg-wallet"><div class="row"><strong>Saldo Seluruh Akun</strong><span>◆ RekGo</span></div><p class="rg-wallet-caption">Total saldo tercatat</p><h1 class="rg-amount">Rp{{number_format(($balances->available??0)+($balances->pending??0)+($balances->locked??0),0,',','.')}}</h1><div class="rg-wallet-stats"><div><small>Tersedia</small><strong>Rp{{number_format($balances->available??0,0,',','.')}}</strong></div><div><small>Tertunda</small><strong>Rp{{number_format($balances->pending??0,0,',','.')}}</strong></div><div><small>Terkunci</small><strong>Rp{{number_format($balances->locked??0,0,',','.')}}</strong></div></div></section>
 <h2 class="rg-section-label">Kelola RekGo</h2>
 <div class="grid rg-admin-grid">
+<a class="glass" href="{{ route('admin.manual-qris') }}"><span class="rg-icon">▦</span><h2>Verifikasi QRIS</h2><p class="muted">ACC / Done atau batalkan deposit</p></a>
 <a class="glass" href="/admin/page/acc"><span class="rg-icon">↗</span><h2>Pencairan</h2><p class="muted">Persetujuan dan status WD</p></a>
 <a class="glass" href="/admin/page/users"><span class="rg-icon">♙</span><h2>Pengguna</h2><p class="muted">Daftar user dan seller</p></a>
 <a class="glass" href="/admin/banks"><span class="rg-icon">▣</span><h2>Manajemen Bank</h2><p class="muted">Tambah dan nonaktifkan bank</p></a><a class="glass" href="/admin/page/fee"><span class="rg-icon">◇</span><h2>Biaya layanan</h2><p class="muted">Pengaturan tier fee</p></a>
