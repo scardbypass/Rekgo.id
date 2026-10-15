@@ -96,6 +96,7 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 <a href="/admin" @if(request()->is('admin')) aria-current="page" @endif aria-label="Ringkasan admin">⌂ Ringkasan</a>
 <a href="/admin/page/acc" @if(request()->is('admin/page/acc')) aria-current="page" @endif>↗ Pencairan</a>
 <a href="/admin/page/users" @if(request()->is('admin/page/users')) aria-current="page" @endif>♙ Pengguna</a>
+<a href="/admin/manual-qris" @if(request()->is('admin/manual-qris')) aria-current="page" @endif>▦ QRIS</a>
 <a href="/admin/page/fee" @if(request()->is('admin/page/fee')) aria-current="page" @endif>◇ Fee</a>
 <a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⇄ User</a>
 @else
