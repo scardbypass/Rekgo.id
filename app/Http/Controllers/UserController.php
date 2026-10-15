@@ -21,6 +21,8 @@ class UserController {
   $d=$r->validate(['amount'=>'required|integer|min:1000|max:1000000000','fee_payer'=>'required|in:sender,receiver']);
   abort_unless(config('rekgo.gopay_live_verified') === true,503,'QRIS live belum diverifikasi untuk lingkungan ini.');
   $pg=DB::table('payment_provider_settings')->where('provider','gopay_marc')->first();abort_unless($pg&&$pg->enabled,503,'QRIS belum diaktifkan oleh Admin.');
+  // Refuse to create a pending payment when the bridge is not configured.
+  abort_unless(is_string(config('services.gopay_bridge.key')) && strlen(config('services.gopay_bridge.key'))>=32,503,'Koneksi QRIS belum dikonfigurasi. Hubungi admin.');
   // MDR QRIS may not be passed to consumers; sender option disabled until a compliant fee model is approved.
   abort_if($d['fee_payer']==='sender',422,'Fee QRIS kepada pembayar belum diizinkan.');
   $fee=$w->fee('qris',$d['amount']);$net=$d['amount']-$fee;abort_if($net<=0,422,'Nominal tidak mencukupi untuk fee.');
