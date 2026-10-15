@@ -45,3 +45,34 @@
 @media(max-width:650px){.rg-admin-metrics{gap:8px}.rg-metric{padding:14px!important}.rg-metric span{font-size:11px}.rg-metric strong{font-size:27px}.rg-metric small{font-size:10px}.rg-admin-panel{padding:16px!important}.rg-withdrawal-summary{gap:10px;padding:13px 11px}.rg-wd-icon{width:35px;height:35px;font-size:20px}.rg-wd-primary strong{font-size:13px}.rg-wd-primary small{font-size:10px}.rg-wd-amount strong{font-size:13px}.rg-wd-details{gap:12px}.rg-withdrawal-body{padding:13px}.rg-chevron{font-size:17px}}
 @media(max-width:390px){.rg-admin-metrics{grid-template-columns:1fr}.rg-metric{flex-direction:row;align-items:center;justify-content:space-between}.rg-metric small{display:none}.rg-wd-icon{display:none}.rg-wd-amount strong{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.rg-withdrawal,.rg-chevron{transition:none}}
+
+/* Admin detail pages: mobile-first lists, compact empty states and form layout */
+.rg-admin-subhead .rg-back-button{margin-bottom:14px;max-width:max-content}
+.rg-admin-subhead h1{margin-top:3px}
+.rg-admin-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+.rg-admin-section-title h2{margin:0 0 4px!important}
+.rg-admin-section-title p{margin:0}
+.rg-user-list{display:grid;gap:9px}
+.rg-user-card{display:flex;align-items:center;gap:12px;padding:13px;border-radius:15px;border:1px solid var(--line);background:rgba(132,166,215,.045);color:var(--fg);text-decoration:none;transition:background .2s}
+.rg-user-card:hover{background:rgba(23,105,244,.09)}
+.rg-user-initial{width:40px;height:40px;flex:none;border-radius:13px;display:grid;place-items:center;background:rgba(23,105,244,.11);color:var(--blue);font-weight:850;font-size:17px}
+.rg-user-info{display:block;min-width:0;flex:1}
+.rg-user-info strong,.rg-user-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rg-user-info strong{font-size:14px}.rg-user-info small{font-size:12px;color:var(--muted);margin-top:3px}
+.rg-user-role{border-radius:999px;padding:5px 9px;background:rgba(23,105,244,.09);font-size:11px;font-weight:750;white-space:nowrap}
+.rg-user-arrow{color:var(--blue);font-size:19px}
+.rg-fee-list{display:grid;gap:9px}
+.rg-fee-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:14px;padding:13px 15px}
+.rg-fee-item strong,.rg-fee-item small{display:block}.rg-fee-item strong{font-size:13px}.rg-fee-item small{font-size:12px;color:var(--muted);margin-top:4px}
+.rg-fee-value{font-size:17px;font-weight:850;color:var(--blue);white-space:nowrap}
+.rg-fee-empty{padding:18px;border:1px dashed var(--line);border-radius:15px;text-align:center}
+.rg-fee-empty p{margin:4px 0 0}
+.rg-fee-form-head{margin-top:22px;padding-top:17px;border-top:1px solid var(--line)}
+.rg-fee-form-head h3{margin:0 0 5px!important}.rg-fee-form-head p{margin:0}
+.rg-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:15px}
+.rg-fee-submit{margin-top:8px}
+.rg-admin-panel .rg-empty{padding:22px 10px}
+.rg-admin-panel .rg-empty span{font-size:26px}
+.rg-admin-panel .rg-empty h3{margin:4px 0}
+.rg-admin-panel .rg-empty p{margin:4px 0 0;font-size:13px}
+@media(max-width:650px){.rg-admin-section-title{align-items:flex-start}.rg-user-role{display:none}.rg-user-card{padding:11px;gap:9px}.rg-user-initial{width:36px;height:36px}.rg-form-grid{grid-template-columns:1fr}.rg-fee-submit{width:100%}.rg-admin-panel .rg-empty{padding:17px 8px}}
