@@ -70,6 +70,7 @@ Route::middleware(['auth','admin','throttle:5,1'])->prefix('admin/users')->group
 Route::prefix('api/rekgo-bot')->middleware('throttle:30,1')
  ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
  ->group(function(){
+  Route::post('/account',[\App\Http\Controllers\RekgoBotApiController::class,'account']);
   Route::post('/escrows',[\App\Http\Controllers\RekgoBotApiController::class,'create']);
   Route::post('/done',[\App\Http\Controllers\RekgoBotApiController::class,'done']);
  });
