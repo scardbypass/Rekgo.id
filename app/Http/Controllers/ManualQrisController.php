@@ -11,7 +11,7 @@ final class ManualQrisController
 {
     public function index(Request $request)
     {
-        abort_unless(in_array($request->user()?->role, ['admin','super_admin'], true), 403);
+        abort_unless(in_array($request->user()?->role, ['super_admin','finance'], true), 403);
         return view('admin-manual-qris', [
             'payments' => Payment::where('provider', 'qris_manual')->latest()->paginate(30),
         ]);
