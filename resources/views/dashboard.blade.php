@@ -1,8 +1,20 @@
 @extends('layout')
 @section('content')
-<div class="rg-page-heading"><p>Dashboard RekGo</p><h1>Halo, {{ $u->username }} 👋</h1><p>Ringkasan akun dan transaksi Anda.</p></div>
-<section class="card" aria-label="Ringkasan saldo"><div class="row"><strong>RekGo • by CeirGo</strong><span>◈</span></div><p style="margin-top:25px">Total Saldo</p><h1 class="rg-amount">Rp{{number_format($b->available+$b->pending+$b->locked,0,',','.')}}</h1><div class="row rg-stat-row"><div><small>Tersedia</small><br><strong>Rp{{number_format($b->available,0,',','.')}}</strong></div><div><small>Tertunda</small><br><strong>Rp{{number_format($b->pending,0,',','.')}}</strong></div><div><small>Dalam pencairan</small><br><strong>Rp{{number_format($b->locked,0,',','.')}}</strong></div></div></section>
-<h2 class="rg-section-label">Akses cepat</h2>
-<div class="grid rg-quick-grid"><a class="glass" href="/transfer" style="text-decoration:none;color:var(--fg)"><span style="font-size:27px">↗</span><h2>Transfer</h2><p class="muted">Pencairan saldo</p></a><a class="glass" href="/qris" style="text-decoration:none;color:var(--fg)"><span style="font-size:27px">▦</span><h2>QRIS</h2><p class="muted">Pembayaran QRIS</p></a><a class="glass" href="/history" style="text-decoration:none;color:var(--fg)"><span style="font-size:27px">◷</span><h2>Riwayat</h2><p class="muted">Aktivitas transaksi</p></a></div>
-<section class="glass" style="margin-top:20px"><div class="row"><h2>Aktivitas rekber dari bot</h2><a href="/history">Lihat semua →</a></div><div class="scroll"><table><tr><th>ID</th><th>Judul</th><th>Nominal</th><th>Status</th></tr>@forelse($escrows as $e)<tr><td>#{{$e->id}}</td><td>{{$e->title}}</td><td>Rp{{number_format($e->amount,0,',','.')}}</td><td>{{$e->status}}</td></tr>@empty<tr><td colspan="4">Belum ada transaksi.</td></tr>@endforelse</table></div></section>
+<div class="rg-page-heading rg-page-title"><p>REKGO · BERANDA</p><h1>Halo, {{ $u->username }} 👋</h1><p>Ringkasan saldo dan aktivitas akunmu.</p></div>
+<section class="card rg-wallet" aria-label="Ringkasan saldo">
+ <div class="row"><strong>RekGo Wallet</strong><span>◈</span></div>
+ <p class="rg-wallet-caption">Total saldo</p><h1 class="rg-amount">Rp{{ number_format($b->available+$b->pending+$b->locked,0,',','.') }}</h1>
+ <div class="rg-wallet-stats"><div><small>Tersedia</small><strong>Rp{{ number_format($b->available,0,',','.') }}</strong></div><div><small>Tertunda</small><strong>Rp{{ number_format($b->pending,0,',','.') }}</strong></div><div><small>Terkunci</small><strong>Rp{{ number_format($b->locked,0,',','.') }}</strong></div></div>
+</section>
+<div class="rg-section-heading"><h2>Akses cepat</h2></div>
+<div class="rg-shortcuts">
+ <a href="/transfer"><span class="rg-shortcut-icon rg-shortcut-transfer">↗</span><strong>Transfer</strong><small>Tarik saldo</small></a>
+ <a href="/qris"><span class="rg-shortcut-icon rg-shortcut-qris">▦</span><strong>QRIS</strong><small>Terima pembayaran</small></a>
+ <a href="/history"><span class="rg-shortcut-icon rg-shortcut-history">◷</span><strong>Riwayat</strong><small>Lihat transaksi</small></a>
+ <a href="/account"><span class="rg-shortcut-icon rg-shortcut-account">♙</span><strong>Akun</strong><small>Pengaturan</small></a>
+</div>
+<section class="glass rg-dashboard-activity">
+ <div class="rg-dashboard-activity-head"><div><h2>Aktivitas terbaru</h2><p class="muted small">Transaksi rekber dari bot</p></div><a class="rg-action-link" href="/history">Lihat semua <span>→</span></a></div>
+ <div class="rg-records">@forelse($escrows as $e)<div class="rg-record"><div><strong>{{ $e->title }}</strong><small>#{{ $e->id }} · {{ $e->created_at?->format('d M Y, H:i') }}</small></div><div class="rg-record-right"><strong>Rp{{ number_format($e->amount,0,',','.') }}</strong><span class="pill">{{ $e->status }}</span></div></div>@empty<div class="rg-history-empty"><span>◷</span><strong>Belum ada aktivitas</strong><p>Transaksi rekber yang diproses bot akan tampil di sini.</p></div>@endforelse</div>
+</section>
 @endsection
