@@ -54,6 +54,7 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function(){
  Route::post('/bank-transfer-fee',[\App\Http\Controllers\AdminController::class,'bankTransferFee'])->middleware('throttle:5,1');
  Route::get('/banks',[\App\Http\Controllers\BankDirectoryController::class,'index']);
  Route::post('/banks',[\App\Http\Controllers\BankDirectoryController::class,'store'])->middleware('throttle:10,1');
+ Route::post('/banks/{id}/rename',[\App\Http\Controllers\BankDirectoryController::class,'rename'])->whereNumber('id');
  Route::post('/banks/{id}/remove',[\App\Http\Controllers\BankDirectoryController::class,'remove'])->whereNumber('id');
  Route::post('/banks/{id}/restore',[\App\Http\Controllers\BankDirectoryController::class,'restore'])->whereNumber('id');
 });
