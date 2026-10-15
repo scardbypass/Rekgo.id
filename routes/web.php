@@ -11,6 +11,7 @@ Route::middleware('auth')->group(function(){
 Route::middleware('auth')->post('/announcements/{id}/dismiss',[\App\Http\Controllers\V4AdminController::class,'dismiss'])->whereNumber('id');
 Route::middleware(['auth','admin'])->prefix('admin/v4')->group(function(){
  Route::get('/',[\App\Http\Controllers\V4AdminController::class,'settings']);
+ Route::post('/registration',[\App\Http\Controllers\V4AdminController::class,'registration'])->middleware('throttle:5,1');
  Route::post('/maintenance',[\App\Http\Controllers\V4AdminController::class,'maintenance']);
  Route::post('/announcements',[\App\Http\Controllers\V4AdminController::class,'createAnnouncement']);
  Route::post('/announcements/{id}/toggle',[\App\Http\Controllers\V4AdminController::class,'toggleAnnouncement'])->whereNumber('id');
