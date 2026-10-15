@@ -1,0 +1,47 @@
+/* RekGo Admin — finance components. Shared tokens are defined in layout.blade.php. */
+.rg-admin-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}
+.rg-metric{display:flex;flex-direction:column;gap:6px;padding:22px!important}
+.rg-metric span{font-size:13px;color:var(--muted);font-weight:650}
+.rg-metric strong{font-size:clamp(27px,4vw,38px);letter-spacing:-.06em;line-height:1.1;font-variant-numeric:tabular-nums}
+.rg-metric small{color:var(--muted);font-size:12px}
+.rg-admin-panel{padding:24px!important}
+.rg-panel-heading{margin-bottom:14px;flex-wrap:wrap}
+.rg-panel-heading h2{margin:0 0 4px}
+.rg-panel-heading p{margin:0}
+.rg-admin-records{display:flex;flex-direction:column;gap:10px}
+.rg-withdrawal{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.3);overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.rg-withdrawal[open]{border-color:rgba(23,105,244,.34);box-shadow:0 12px 30px rgba(32,90,160,.08)}
+.rg-withdrawal-summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:15px;padding:17px 18px}
+.rg-withdrawal-summary::-webkit-details-marker{display:none}
+.rg-wd-icon{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:14px;background:rgba(23,105,244,.1);color:var(--blue);font-size:24px}
+.rg-wd-primary{min-width:0;flex:1}
+.rg-wd-primary strong,.rg-wd-primary small{display:block;overflow-wrap:anywhere}
+.rg-wd-primary small{color:var(--muted);font-size:12px;margin-top:3px}
+.rg-wd-amount{display:flex;flex-direction:column;align-items:flex-end;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rg-status{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800;letter-spacing:.01em}
+.rg-status-wait{background:rgba(236,165,44,.14);color:#a56b0d}
+.rg-status-progress{background:rgba(33,127,237,.13);color:#1769d0}
+.rg-status-done{background:rgba(18,161,106,.13);color:#087d52}
+.rg-status-failed{background:rgba(218,67,77,.13);color:#c43647}
+.rg-chevron{font-size:21px;color:var(--muted);transition:transform .2s}
+.rg-withdrawal[open] .rg-chevron{transform:rotate(180deg)}
+.rg-withdrawal-body{padding:18px;border-top:1px solid var(--line)}
+.rg-wd-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;padding-bottom:15px}
+.rg-wd-details>div{min-width:0}
+.rg-wd-details small,.rg-wd-details strong{display:block;overflow-wrap:anywhere}
+.rg-wd-details small{font-size:12px;color:var(--muted);margin-bottom:3px}
+.rg-wd-details strong{font-size:14px}
+.rg-wd-actions{border-top:1px solid var(--line);padding-top:15px}
+.rg-wd-actions h3{margin:0 0 5px}
+.rg-wd-actions form{margin-top:12px}
+.rg-wd-actions textarea{resize:vertical}
+.rg-reject-panel{border-top:1px solid var(--line);padding-top:13px;margin-top:15px}
+.rg-reject-panel>summary{cursor:pointer;font-size:13px;font-weight:700;color:#b7444e}
+.rg-danger-button{background:#bf3f50}
+.rg-wd-alert{padding:11px 13px;border-radius:12px;background:rgba(220,70,70,.08);color:#b03a48}
+.rg-empty{text-align:center;padding:38px 12px}
+.rg-empty span{font-size:34px;color:var(--blue)}
+.rg-empty h3{margin:8px 0}
+@media(max-width:650px){.rg-admin-metrics{gap:8px}.rg-metric{padding:14px!important}.rg-metric span{font-size:11px}.rg-metric strong{font-size:27px}.rg-metric small{font-size:10px}.rg-admin-panel{padding:16px!important}.rg-withdrawal-summary{gap:10px;padding:13px 11px}.rg-wd-icon{width:35px;height:35px;font-size:20px}.rg-wd-primary strong{font-size:13px}.rg-wd-primary small{font-size:10px}.rg-wd-amount strong{font-size:13px}.rg-wd-details{gap:12px}.rg-withdrawal-body{padding:13px}.rg-chevron{font-size:17px}}
+@media(max-width:390px){.rg-admin-metrics{grid-template-columns:1fr}.rg-metric{flex-direction:row;align-items:center;justify-content:space-between}.rg-metric small{display:none}.rg-wd-icon{display:none}.rg-wd-amount strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.rg-withdrawal,.rg-chevron{transition:none}}
