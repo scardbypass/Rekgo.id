@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 use App\Models\Audit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 class IntegrationAdminController {
  private function authorizeSuper(Request $r):void {abort_unless($r->user()?->role==='super_admin',403);}
  private function audit(Request $r,string $action,string $subject,int $id,array $meta=[]):void {
@@ -10,8 +12,19 @@ class IntegrationAdminController {
  }
  public function index(Request $r){$this->authorizeSuper($r);return view('admin-integrations',['bots'=>DB::table('wa_bot_instances')->orderByDesc('id')->get(),'pg'=>DB::table('payment_provider_settings')->where('provider','gopay_marc')->first()]);}
  public function bots(Request $r){$this->authorizeSuper($r);return view('admin-integrations-bots',['bots'=>DB::table('wa_bot_instances')->orderByDesc('id')->get()]);}
- public function gopay(Request $r){$this->authorizeSuper($r);return view('admin-integrations-gopay',['pg'=>DB::table('payment_provider_settings')->where('provider','gopay_marc')->first()]);}
+ public function gopay(Request $r){$this->authorizeSuper($r);return view('admin-integrations-gopay',['pg'=>DB::table('payment_provider_settings')->where('provider','gopay_marc')->first(),'credentials_saved'=>Storage::disk('local')->exists('private/gopay-merchant.enc')]);}
  public function deleteBot(Request $r,int $id){$this->authorizeSuper($r);$bot=DB::table('wa_bot_instances')->where('id',$id)->first();abort_unless($bot,404);abort_if($bot->status==='online',422,'Nonaktifkan dan putuskan koneksi bot sebelum menghapus.');DB::transaction(function()use($r,$id,$bot){DB::table('wa_bot_instances')->where('id',$id)->delete();$this->audit($r,'wa_bot.deleted','wa_bot',$id,['phone_suffix'=>substr($bot->phone,-4)]);});return redirect('/admin/integrations/bots')->with('ok','Bot berhasil dihapus dari daftar. Pastikan sesi pada bridge WhatsApp juga sudah dicabut.');}
+ public function saveGopayCredentials(Request $r){
+  $this->authorizeSuper($r);
+  $d=$r->validate(['email'=>'required|email|max:254','password'=>'nullable|string|max:512']);
+  $disk=Storage::disk('local');$path='private/gopay-merchant.enc';
+  $old=[];if($disk->exists($path)){try{$old=json_decode(Crypt::decryptString($disk->get($path)),true)?:[];}catch(\Throwable $e){abort(500,'Konfigurasi terenkripsi tidak dapat dibaca.');}}
+  if(empty($d['password']) && empty($old['password']))return back()->withErrors(['password'=>'Password wajib untuk koneksi pertama.']);
+  $payload=['email'=>$d['email'],'password'=>$d['password']??$old['password'],'updated_at'=>now()->toIso8601String()];
+  $disk->put($path,Crypt::encryptString(json_encode($payload,JSON_THROW_ON_ERROR)));
+  $this->audit($r,'pg.credentials_saved','payment_provider',0);
+  return redirect('/admin/integrations/gopay')->with('ok','Kredensial terenkripsi tersimpan di server. Belum terhubung sampai adapter GoBiz berhasil diuji.');
+ }
  public function addBot(Request $r){$this->authorizeSuper($r);$d=$r->validate(['label'=>'required|string|max:100','phone'=>'required|regex:/^62[0-9]{8,13}$/|unique:wa_bot_instances,phone','connection_method'=>'required|in:qr,pair']);
   $id=DB::table('wa_bot_instances')->insertGetId($d+['status'=>'offline','enabled'=>true,'created_at'=>now(),'updated_at'=>now()]);$this->audit($r,'wa_bot.registered','wa_bot',$id,['phone_suffix'=>substr($d['phone'],-4)]);return back()->with('ok','Nomor bot terdaftar. QR/pairing memerlukan service Baileys yang belum terpasang.');}
  public function toggleBot(Request $r,int $id){$this->authorizeSuper($r);$d=$r->validate(['enabled'=>'required|boolean']);abort_unless(DB::table('wa_bot_instances')->where('id',$id)->update(['enabled'=>$d['enabled'],'updated_at'=>now()]),404);$this->audit($r,'wa_bot.enabled_changed','wa_bot',$id,['enabled'=>$d['enabled']]);return back()->with('ok','Pengaturan bot diperbarui.');}
