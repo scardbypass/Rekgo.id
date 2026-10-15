@@ -3,6 +3,11 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 class GopayBridge {
+ public function journal(array $filters=[]):array {
+  // The private CeirGo-compatible service handles merchant auth and token renewal.
+  // Never send merchant credentials from the public RekGo application.
+  return $this->call('journal-search',$filters);
+ }
  public function call(string $action,array $data=[]):array {
   $key=config('services.gopay_bridge.key');
   if(!$key || strlen($key)<32)throw new RuntimeException('GoPay bridge not configured');
