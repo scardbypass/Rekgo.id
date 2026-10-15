@@ -74,3 +74,8 @@ Route::prefix('api/rekgo-bot')->middleware('throttle:30,1')
   Route::post('/escrows',[\App\Http\Controllers\RekgoBotApiController::class,'create']);
   Route::post('/done',[\App\Http\Controllers\RekgoBotApiController::class,'done']);
  });
+
+Route::middleware(['auth','admin'])->group(function () {
+ Route::get('/admin/manual-qris', [\App\Http\Controllers\ManualQrisController::class, 'index'])->name('admin.manual-qris');
+ Route::post('/admin/manual-qris/{payment}/decide', [\App\Http\Controllers\ManualQrisController::class, 'decide'])->middleware('throttle:10,1')->name('admin.manual-qris.decide');
+});
