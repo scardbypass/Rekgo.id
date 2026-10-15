@@ -1,6 +1,6 @@
 @extends('layout')
 @section('content')
-<div class="rg-page-heading rg-page-title"><p>REKGO · BERANDA</p><h1>Halo, {{ $u->username }} 👋</h1><p>Ringkasan saldo dan aktivitas akunmu.</p></div>
+<div class="rg-dash-top"><div class="rg-page-heading rg-page-title"><p>REKGO · BERANDA</p><h1>Halo, {{ $u->username }} 👋</h1><p>Ringkasan saldo dan aktivitas akunmu.</p></div>@if($u->isAdmin())<a class="rg-dash-admin" href="/admin"><span>⚙</span> Admin Center <span>→</span></a>@endif</div>
 <section class="card rg-wallet" aria-label="Ringkasan saldo">
  <div class="row"><strong>RekGo Wallet</strong><span>◈</span></div>
  <p class="rg-wallet-caption">Total saldo</p><h1 class="rg-amount">Rp{{ number_format($b->available+$b->pending+$b->locked,0,',','.') }}</h1>
