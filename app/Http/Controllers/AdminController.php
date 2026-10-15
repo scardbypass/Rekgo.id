@@ -66,6 +66,19 @@ class AdminController {
   });
   return back()->with('ok','Tarif per transaksi berhasil disimpan.');
  }
+ public function updateTier(Request $r,FeeTier $tier,Wallet $w){
+  $this->super($r);
+  $d=$r->validate(['scope'=>'required|in:escrow,qris','minimum'=>'required|integer|min:0','maximum'=>'required|integer|gte:minimum|max:1000000000','type'=>'required|in:flat,percent','value'=>'required|integer|min:0|max:10000000']);
+  abort_if($d['type']==='percent' && $d['value']>10000,422,'Persentase maksimal 100%.');
+  DB::transaction(function()use($r,$tier,$d,$w){
+   $locked=FeeTier::whereKey($tier->id)->lockForUpdate()->firstOrFail();
+   $overlap=FeeTier::where('scope',$d['scope'])->where('active',true)->where('id','!=',$locked->id)->where('minimum','<=',$d['maximum'])->where(function($q)use($d){$q->whereNull('maximum')->orWhere('maximum','>=',$d['minimum']);});
+   abort_if($overlap->exists(),422,'Rentang nominal bertabrakan dengan tarif lain.');
+   $locked->update($d);
+   $w->audit($r->user()->id,'fee.updated','fee_tier',$locked->id,$d);
+  },3);
+  return back()->with('ok','Tarif berhasil diedit.');
+ }
  public function deleteTier(Request $r,FeeTier $tier,Wallet $w){
   $this->super($r);$tier->update(['active'=>false]);$w->audit($r->user()->id,'fee.disabled','fee_tier',$tier->id);return back()->with('ok','Tarif dinonaktifkan.');
  }
