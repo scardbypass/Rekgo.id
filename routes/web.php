@@ -59,3 +59,8 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function(){
  Route::post('/banks/{id}/remove',[\App\Http\Controllers\BankDirectoryController::class,'remove'])->whereNumber('id');
  Route::post('/banks/{id}/restore',[\App\Http\Controllers\BankDirectoryController::class,'restore'])->whereNumber('id');
 });
+
+Route::middleware(['auth','admin','throttle:5,1'])->prefix('admin/users')->group(function(){
+ Route::post('/{user}/contact',[\App\Http\Controllers\AdminUserAccountController::class,'contact'])->whereNumber('user');
+ Route::post('/{user}/password',[\App\Http\Controllers\AdminUserAccountController::class,'password'])->whereNumber('user');
+});
