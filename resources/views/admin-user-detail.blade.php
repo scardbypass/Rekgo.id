@@ -73,6 +73,32 @@ document.addEventListener('DOMContentLoaded',function(){rgBalanceAction(@json(ol
 @endif
 </script>
 @endif
+
+@if(auth()->user()->role==='super_admin' && $member->role==='user')
+<section class="glass" style="margin-top:16px">
+ <h2>Bantuan Akun Pengguna</h2>
+ <p class="muted small">Hanya Super Admin. Periksa identitas pemilik akun sebelum melakukan perubahan. Semua tindakan dicatat dalam audit log.</p>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px">
+ <form method="post" action="/admin/users/{{ $member->id }}/contact" autocomplete="off">
+ @csrf
+ <h3>Edit Email & WhatsApp</h3>
+ <label for="rg-contact-email">Email pengguna</label><input id="rg-contact-email" type="email" name="email" value="{{ old('email',$member->email) }}" required maxlength="255">
+ <label for="rg-contact-phone">Nomor WhatsApp</label><input id="rg-contact-phone" type="tel" name="phone" value="{{ old('phone',$member->phone) }}" pattern="\\+?[0-9]{9,16}" required>
+ <label for="rg-contact-admin-password">Password Super Admin (konfirmasi)</label><input id="rg-contact-admin-password" type="password" name="admin_password" autocomplete="current-password" required>
+ <button type="submit" onclick="return confirm('Pastikan identitas pemilik akun sudah diverifikasi. Simpan perubahan kontak?')">Simpan Kontak</button>
+ </form>
+ <form method="post" action="/admin/users/{{ $member->id }}/password" autocomplete="off">
+ @csrf
+ <h3>Reset Password Pengguna</h3>
+ <label for="rg-new-password">Password baru (minimal 12 karakter)</label><input id="rg-new-password" type="password" name="new_password" minlength="12" maxlength="128" autocomplete="new-password" required>
+ <label for="rg-new-password-confirmation">Ulangi password baru</label><input id="rg-new-password-confirmation" type="password" name="new_password_confirmation" minlength="12" maxlength="128" autocomplete="new-password" required>
+ <label for="rg-reset-admin-password">Password Super Admin (konfirmasi)</label><input id="rg-reset-admin-password" type="password" name="admin_password" autocomplete="current-password" required>
+ <button type="submit" onclick="return confirm('Reset password pengguna ini?')">Reset Password</button>
+ <p class="muted small">Password lama tidak dapat dilihat. Jangan kirim password baru melalui grup publik.</p>
+ </form>
+ </div>
+</section>
+@endif
 <section class="glass" style="margin-top:16px"><h2>QRIS terbaru</h2><div class="rg-records">@forelse($payments as $p)<div class="rg-record"><span>#{{ $p->id }} · {{ $p->status }}</span><strong>Rp{{ number_format($p->gross,0,',','.') }}</strong></div>@empty<p class="muted">Belum ada pembayaran.</p>@endforelse</div></section>
 <section class="glass" style="margin-top:16px"><h2>Pencairan terbaru</h2><div class="rg-records">@forelse($withdrawals as $wd)<div class="rg-record"><span>#{{ $wd->id }} · {{ $wd->status }}</span><strong>Rp{{ number_format($wd->amount,0,',','.') }}</strong></div>@empty<p class="muted">Belum ada pencairan.</p>@endforelse</div></section>
 @endsection
