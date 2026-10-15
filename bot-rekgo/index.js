@@ -5,6 +5,7 @@ const {useMultiFileAuthState,DisconnectReason} = Baileys;
 import pino from 'pino';
 import http from 'node:http';
 import QRCode from 'qrcode';
+import {parseCommand,menuText,helpText} from './plugins/commands.js';
 const base=process.env.REKGO_API_URL,key=process.env.REKGO_BOT_API_KEY;
 if(!base||!key||key.length<32)throw Error('Configure REKGO_API_URL and REKGO_BOT_API_KEY');
 const authDir=process.env.REKGO_AUTH_DIR||'./auth';
@@ -76,7 +77,12 @@ async function run(){
    const done=/^rekber\s+done$/i.test(text);
    if(!match&&!done&&!account)continue;
    try{
-    if(account){
+    if(command.name==='menu'||command.name==='help'){
+     const phone=sender.split('@')[0].replace(/\D/g,'');
+     if(!phone)continue;
+     await api('/api/rekgo-bot/account',{phone});
+     await sock.sendMessage(sender,{text:command.name==='menu'?menuText():helpText()});
+    }else if(account){
      const phone=sender.split('@')[0].replace(/\\D/g,'');
      if(!phone)continue;
      const data=await api('/api/rekgo-bot/account',{phone});
@@ -94,7 +100,7 @@ async function run(){
      const data=await api('/api/rekgo-bot/done',{group_jid:group,buyer_jid:sender,buyer_phone:buyerPhone});
      await sock.sendMessage(group,{text:'RekGo #'+data.id+': permintaan selesai diterima untuk pemeriksaan admin. Dana belum dicairkan.'});
     }
-   }catch(e){if(account && e.status===403)continue;if(account)console.warn('Account lookup failed:',e.message);else await sock.sendMessage(group,{text:'RekGo: '+String(e.message).slice(0,240)});}
+   }catch(e){if(e.status===403)continue;if(account||command.name==='menu'||command.name==='help')console.warn('Account lookup failed:',e.message);else await sock.sendMessage(group,{text:'RekGo: '+String(e.message).slice(0,240)});}
    await sleep(250);
   }
  });
