@@ -7,9 +7,9 @@
 @if($payment->status==='pending' && $payment->expires_at?->isFuture() && $payment->qr_payload)
 <img src="{{ route('qris.image',$payment) }}" alt="QRIS nominal Rp{{number_format($payment->gross,0,',','.')}}" width="360" height="360" style="width:100%;max-width:360px;height:auto;background:white;border-radius:18px;padding:8px" />
 <p>Berlaku sampai {{ $payment->expires_at->timezone('Asia/Jakarta')->format('d/m/Y H:i:s') }} WIB</p>
-<p class="muted">Bayar sesuai nominal. Status pembayaran diperiksa otomatis oleh server.</p>
+<p class="muted">Bayar sesuai nominal. Setelah membayar, tunggu admin mencocokkan mutasi merchant dan menekan ACC. Periksa nominal dan nama merchant sebelum membayar; bila berbeda, batalkan pembayaran.</p>
 @else
-<p class="pending">QRIS tidak tersedia untuk dipindai. Jika pembayaran baru saja dilakukan, tunggu rekonsiliasi.</p>
+<p class="pending">QRIS tidak tersedia untuk dipindai. Jika sudah membayar, hubungi admin dengan nomor tagihan ini. Jangan membayar dua kali.</p>
 @endif
 <a href="/dashboard">Kembali ke Dashboard</a>
 </section>
