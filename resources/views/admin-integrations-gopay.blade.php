@@ -6,7 +6,7 @@
 <section class="glass"><strong>Pengaturan belum tersimpan</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></section><div class="gap"></div>
 @endif
 @if(session('ok'))<section class="glass">{{ session('ok') }}</section><div class="gap"></div>@endif
-<div class="grid rg-admin-grid">
+<section class="glass"><h2>Mode Uji Live Khusus Super Admin</h2><p class="muted small">Lihat QRIS merchant asli untuk mencoba pembayaran manual. Tidak membuat tagihan, tidak mengkredit saldo, dan tidak mengaktifkan deposit pengguna.</p><a class="btn secondary" href="{{ route('admin.gopay.test') }}">Buka Mode Uji QRIS →</a></section><div class="gap"></div>\n<div class="grid rg-admin-grid">
 <div class="glass"><span class="rg-icon">◇</span><h3>Akun GoBiz</h3><p class="muted">{{ $credentials_saved ? 'Kredensial tersimpan secara terenkripsi' : 'Belum dikonfigurasi' }}</p></div>
 <div class="glass"><span class="rg-icon">◷</span><h3>Transaksi Otomatis</h3><p class="muted">{{ $pg && $pg->enabled ? 'Pengaturan aktif' : 'Belum aktif' }} · Belum terverifikasi live</p></div>
 </div>
