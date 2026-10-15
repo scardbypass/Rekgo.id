@@ -19,6 +19,9 @@ Route::middleware(['auth','admin'])->prefix('admin/v4')->group(function(){
 
 Route::middleware(['auth','admin'])->prefix('admin/integrations')->group(function(){
  Route::get('/',[\App\Http\Controllers\IntegrationAdminController::class,'index']);
+ Route::get('/bots',[\App\Http\Controllers\IntegrationAdminController::class,'bots']);
+ Route::get('/gopay',[\App\Http\Controllers\IntegrationAdminController::class,'gopay']);
+ Route::post('/bots/{id}/delete',[\App\Http\Controllers\IntegrationAdminController::class,'deleteBot'])->whereNumber('id');
  Route::post('/bots',[\App\Http\Controllers\IntegrationAdminController::class,'addBot']);
  Route::post('/bots/{id}/toggle',[\App\Http\Controllers\IntegrationAdminController::class,'toggleBot'])->whereNumber('id');
  Route::post('/pg',[\App\Http\Controllers\IntegrationAdminController::class,'savePg']);
