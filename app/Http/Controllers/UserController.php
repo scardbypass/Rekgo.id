@@ -7,12 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 class UserController {
  public function dashboard(Request $r){$u=$r->user();$b=Balance::firstOrCreate(['user_id'=>$u->id]);return view('dashboard',['u'=>$u,'b'=>$b,'withdrawals'=>Withdrawal::where('user_id',$u->id)->latest()->limit(10)->get(),'escrows'=>Escrow::where('seller_id',$u->id)->latest()->limit(10)->get(),'payments'=>Payment::where('user_id',$u->id)->latest()->limit(10)->get()]);}
- private function page(Request $r,string $page){$u=$r->user();return view('user-pages',['page'=>$page,'u'=>$u,'b'=>Balance::firstOrCreate(['user_id'=>$u->id]),'withdrawals'=>Withdrawal::where('user_id',$u->id)->latest()->limit(30)->get(),'escrows'=>Escrow::where('seller_id',$u->id)->latest()->limit(30)->get(),'payments'=>Payment::where('user_id',$u->id)->latest()->limit(30)->get()]);}
- public function transfer(Request $r){return $this->page($r,'transfer');}
- public function rekber(Request $r){return $this->page($r,'rekber');}
- public function qrisPage(Request $r){return $this->page($r,'qris');}
- public function history(Request $r){return $this->page($r,'history');}
- public function account(Request $r){return $this->page($r,'account');}
  public function account(Request $r){return view('account',['user'=>$r->user(),'balance'=>Balance::firstOrCreate(['user_id'=>$r->user()->id])]);}
  public function transfer(Request $r){return view('transfer',['user'=>$r->user(),'balance'=>Balance::firstOrCreate(['user_id'=>$r->user()->id]),'withdrawals'=>Withdrawal::where('user_id',$r->user()->id)->latest()->limit(30)->get()]);}
  public function history(Request $r){$id=$r->user()->id;return view('history',['payments'=>Payment::where('user_id',$id)->latest()->limit(50)->get(),'withdrawals'=>Withdrawal::where('user_id',$id)->latest()->limit(50)->get(),'escrows'=>Escrow::where('seller_id',$id)->latest()->limit(50)->get()]);}
