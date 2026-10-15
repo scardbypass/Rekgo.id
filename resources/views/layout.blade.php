@@ -75,7 +75,7 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 .rg-notice h2{margin-top:0}
 .glass form{max-width:100%}
 @media(max-width:700px){.rg-settings-grid{grid-template-columns:1fr}.rg-record{padding:14px 0}.rg-record-right{font-size:13px}.rg-avatar{width:48px;height:48px}}
-</style><link rel="stylesheet" href="{{ asset('css/rekgo-admin.css') }}?v=20261015b"><link rel="stylesheet" href="{{ asset('css/rekgo-mobile.css') }}?v=20261015b"><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>
+</style><link rel="stylesheet" href="{{ asset('css/rekgo-admin.css') }}?v=20261015b"><link rel="stylesheet" href="{{ asset('css/rekgo-mobile.css') }}?v=20261015c"><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>
 @if(auth()->check())
 <form action="/logout" method="post">
 @csrf
