@@ -5,7 +5,16 @@
 <div class="rg-section-heading"><h2>PENCAIRAN</h2></div>
 <section class="glass rg-compact-panel"><div class="rg-history-head"><span class="rg-history-symbol rg-symbol-transfer">↗</span><div class="rg-history-heading"><h2>Transfer ke bank</h2><p>{{ $user->bank_code ?: 'Belum ada bank' }} · {{ $user->bank_account ? '••••'.substr($user->bank_account,-4) : 'Rekening belum diatur' }}</p></div><a class="rg-action-link" href="/account">Atur <span>→</span></a></div>
 @if($user->bank_verified_at && $user->bank_name)<p class="muted small">Nama penerima terverifikasi: <strong>{{ $user->bank_name }}</strong></p>@endif
-<form method="post" action="/withdrawals">@csrf<label for="amount">Nominal pencairan</label><input id="amount" name="amount" type="number" min="10000" max="1000000000" step="1" required placeholder="Minimal Rp10.000"><button type="submit" @disabled(!$user->bank_verified_at || !$user->bank_name)>Ajukan pencairan →</button></form>
+<p class="muted small">Biaya transfer bank: <strong>Rp{{ number_format($transferFee,0,',','.') }}</strong> per pencairan.</p><form method="post" action="/withdrawals">@csrf<label for="amount">Nominal pencairan</label><input id="amount" name="amount" type="number" min="10000" max="1000000000" step="1" required placeholder="Minimal Rp10.000"><p id="wd-cost" class="muted small" aria-live="polite"></p><button type="submit" @disabled(!$user->bank_verified_at || !$user->bank_name)>Ajukan pencairan →</button></form>
 @unless($user->bank_verified_at && $user->bank_name)<p class="rg-inline-notice">Rekening menunggu persetujuan Super Admin atau verifikasi otomatis dari provider bank.</p>@endunless</section>
 <section class="glass rg-compact-panel rg-panel-spaced"><div class="rg-history-head"><span class="rg-history-symbol">◷</span><div class="rg-history-heading"><h2>Riwayat pencairan</h2><p>Status transfer terbaru</p></div><a class="rg-action-link" href="/history">Semua <span>→</span></a></div><div class="rg-records">@forelse($withdrawals as $wd)<div class="rg-record"><div><strong>WD #{{ $wd->id }}</strong><small>{{ $wd->created_at?->format('d M Y, H:i') }}</small></div><div class="rg-record-right"><strong>Rp{{ number_format($wd->amount,0,',','.') }}</strong><span class="pill">{{ $wd->status }}</span></div></div>@empty<div class="rg-history-empty"><span>↗</span><strong>Belum ada pencairan</strong><p>Pengajuan transfer akan tampil di sini.</p></div>@endforelse</div></section>
+<script>
+(function(){
+ const input=document.getElementById('amount'),output=document.getElementById('wd-cost'),fee={{ (int)$transferFee }};
+ if(!input||!output)return;
+ const format=n=>'Rp'+n.toLocaleString('id-ID');
+ const update=()=>{const amount=Number(input.value)||0;output.textContent=amount>0?'Total potongan saldo: '+format(amount+fee)+' (WD '+format(amount)+' + biaya '+format(fee)+')':'';};
+ input.addEventListener('input',update);update();
+})();
+</script>
 @endsection
