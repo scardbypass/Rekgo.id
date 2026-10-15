@@ -21,10 +21,10 @@ final class GoPayLiveTestController
         return view('admin-gopay-live-test', ['ready' => $ready]);
     }
 
-    public function image(Request $request, StaticQris $qris)
+    public function image(Request $request, StaticQris $qris, \\App\\Services\\QrisAmountPayload $amountPayload)
     {
         $this->authorizeOwner($request);
-        try { $payload = $qris->payload(); }
+        try { $payload = $amountPayload->withAmount($qris->payload(), 1001); }
         catch (\Throwable $e) { abort(404, 'QRIS merchant belum tersedia.'); }
         $svg = (new SvgWriter())->write(new QrCode(data: $payload, size: 360, margin: 16))->getString();
         return response($svg, 200, [
