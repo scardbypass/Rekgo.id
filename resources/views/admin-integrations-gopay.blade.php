@@ -2,6 +2,10 @@
 @section('content')
 <div class="rg-page-heading"><p>RekGo • Admin Center</p><h1>GoPay Merchant</h1><p>Kelola akun GoBiz, QRIS statis, dan pengaturan pengecekan pembayaran.</p></div>
 <p><a class="btn secondary" href="/admin/integrations">← Semua Integrasi</a></p>
+@if($errors->any())
+<section class="glass"><strong>Pengaturan belum tersimpan</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></section><div class="gap"></div>
+@endif
+@if(session('ok'))<section class="glass">{{ session('ok') }}</section><div class="gap"></div>@endif
 <div class="grid rg-admin-grid">
 <div class="glass"><span class="rg-icon">◇</span><h3>Akun GoBiz</h3><p class="muted">{{ $credentials_saved ? 'Kredensial tersimpan secara terenkripsi' : 'Belum dikonfigurasi' }}</p></div>
 <div class="glass"><span class="rg-icon">◷</span><h3>Transaksi Otomatis</h3><p class="muted">{{ $pg && $pg->enabled ? 'Pengaturan aktif' : 'Belum aktif' }} · Belum terverifikasi live</p></div>
@@ -12,6 +16,7 @@
 <form method="post" action="/admin/integrations/gopay/credentials">@csrf
 <label for="gobiz-email">GoBiz Email</label><input id="gobiz-email" type="email" name="email" required maxlength="254" autocomplete="username" placeholder="merchant@example.com" value="{{ old('email') }}">
 <label for="gobiz-password">GoBiz Password</label><input id="gobiz-password" type="password" name="password" {{ $credentials_saved ? '' : 'required' }} maxlength="512" autocomplete="new-password" placeholder="{{ $credentials_saved ? 'Kosongkan jika tidak ingin mengganti' : 'Password merchant' }}">
+<label><input type="checkbox" style="width:auto" onclick="document.getElementById('gobiz-password').type=this.checked?'text':'password'"> Tampilkan password saat mengetik</label>
 <button type="submit">Simpan Kredensial Aman</button></form>
 <p class="muted small">Login dan refresh token memerlukan adapter GoBiz yang sesuai dan pengujian akun. Jangan memasukkan OTP di halaman yang belum terhubung.</p></section>
 <div class="gap"></div>
@@ -26,7 +31,15 @@
 <label><input type="checkbox" name="enabled" value="1" style="width:auto" {{ $pg&&$pg->enabled?'checked':'' }}> Aktifkan pembayaran live setelah uji berhasil</label>
 <button type="submit">Simpan Pengaturan QRIS</button></form></section>
 <div class="gap"></div>
-<section class="glass"><h2>3. Status & Monitoring</h2>
+<section class="glass"><h2>3. GoPay QRIS Text</h2>
+<p class="muted small">Tempel payload QRIS statis resmi merchant. Teks ditampilkan lengkap dan dapat diedit.</p>
+<form method="post" action="/admin/integrations/gopay/qris-text">@csrf
+<label for="qris-text">QRIS Text</label>
+<textarea id="qris-text" name="qris_text" rows="6" required minlength="20" maxlength="4096" style="width:100%;font-family:monospace">{{ old('qris_text',$qris_text) }}</textarea>
+<button type="submit">Simpan QRIS Text</button></form>
+<p class="muted small">Tersimpan terenkripsi. Pembayaran otomatis tetap nonaktif sampai pengujian selesai.</p></section>
+<div class="gap"></div>
+<section class="glass"><h2>4. Status & Monitoring</h2>
 <p class="muted small">Koneksi provider: belum diuji · Token TTL: belum tersedia · Sinkronisasi jurnal: belum tersedia.</p>
 <p class="muted small">Tidak ada status online atau transaksi berhasil yang ditampilkan sebelum ada respons nyata dari adapter GoBiz.</p>
 </section>
