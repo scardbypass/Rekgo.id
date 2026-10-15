@@ -58,7 +58,24 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 .card:after{animation:rgSheen 11s ease-in-out infinite}
 @media(max-width:760px){.rg-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.rg-admin-grid>a{min-height:119px;padding:15px}.rg-admin-grid>a h2{font-size:15px}.rg-admin-grid>a p{font-size:11px}.rg-admin-grid .rg-icon{width:34px;height:34px;font-size:19px}}
 @media(prefers-reduced-motion:reduce){.wrap main>.rg-page-heading,.wrap>.rg-page-heading,.wrap>.card,.wrap>.glass,.wrap>.grid,.wrap>.rg-section-label,.wrap>section{animation:none}.card:after{animation:none}.glass,.card{transition:none}}
-.nav a[aria-current="page"]{background:rgba(23,105,244,.13);color:var(--blue);font-weight:800}.rg-admin-nav{width:min(96%,550px)}.rg-admin-nav a{flex:1;text-align:center}@media(max-width:430px){.rg-admin-nav{width:calc(100% - 16px);padding:6px}.rg-admin-nav a{font-size:10px;padding:9px 2px}}</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>
+.nav a[aria-current="page"]{background:rgba(23,105,244,.13);color:var(--blue);font-weight:800}.rg-admin-nav{width:min(96%,550px)}.rg-admin-nav a{flex:1;text-align:center}@media(max-width:430px){.rg-admin-nav{width:calc(100% - 16px);padding:6px}.rg-admin-nav a{font-size:10px;padding:9px 2px}}
+/* RekGo account, payments and admin details — reusable UI primitives */
+.rg-settings-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.rg-settings-grid>.glass,.rg-settings-grid>.card{height:100%}
+.rg-avatar{display:grid;place-items:center;flex:none;width:58px;height:58px;border-radius:20px;background:linear-gradient(145deg,#89c9ff,#3477e9);color:#fff;font-size:24px;font-weight:800;box-shadow:0 10px 25px #1769f433}
+.rg-records{display:flex;flex-direction:column}
+.rg-record{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 2px;border-bottom:1px solid var(--line)}
+.rg-record:last-child{border-bottom:0}
+.rg-record>div:first-child{min-width:0}
+.rg-record small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.rg-record-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;white-space:nowrap}
+.rg-record-right strong{font-variant-numeric:tabular-nums}
+.rg-record a,.rg-user-link{color:var(--blue);text-decoration:none;font-weight:700}
+.rg-notice{border-color:rgba(221,153,55,.3);margin-bottom:18px}
+.rg-notice h2{margin-top:0}
+.glass form{max-width:100%}
+@media(max-width:700px){.rg-settings-grid{grid-template-columns:1fr}.rg-record{padding:14px 0}.rg-record-right{font-size:13px}.rg-avatar{width:48px;height:48px}}
+</style><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>
 @if(auth()->check())
 <form action="/logout" method="post">
 @csrf
