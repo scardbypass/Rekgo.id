@@ -56,6 +56,20 @@ final class GopayJournalSettlement
                 return false;
             }
 
+            // A journal entry with no invoice identifier must not be assigned
+            // to an arbitrary customer when several invoices share its amount.
+            $ambiguous = Payment::where('provider', 'gopay_marc')
+                ->where('status', 'pending')
+                ->where('gross', $payment->gross)
+                ->where('id', '!=', $payment->id)
+                ->where('created_at', '<=', $timestamp)
+                ->where('expires_at', '>=', $timestamp)
+                ->exists();
+            if ($ambiguous) {
+                Log::warning('Ambiguous GoPay journal match; settlement withheld', ['payment_id' => $paymentId]);
+                return false;
+            }
+
             $duplicate = Payment::where('provider', 'gopay_marc')
                 ->where('provider_ref', $reference)->where('id', '!=', $paymentId)->exists();
             if ($duplicate || ($payment->provider_ref && $payment->provider_ref !== $reference)) {
