@@ -11,7 +11,7 @@
 <div class="grid rg-settings-grid"><section class="glass"><h2>Informasi pengguna</h2><p><strong>Email</strong><br>{{ $member->email }}</p><p><strong>Telepon</strong><br>{{ $member->phone ?: 'Tidak tersedia' }}</p><p><strong>Bergabung</strong><br>{{ $member->created_at?->format('d M Y H:i') }}</p><p><strong>Bank</strong><br>{{ $member->bank_code ?: 'Belum diatur' }} · {{ $member->bank_account ? '••••'.substr($member->bank_account,-4) : 'Tidak tersedia' }}</p><span class="pill">{{ $member->bank_verified_at ? 'Bank disetujui' : 'Bank belum diverifikasi' }}</span>@if($member->bank_verified_at && $member->bank_name)<p><strong>Nama penerima</strong><br>{{ $member->bank_name }}</p>@endif</section><section class="glass"><h2>Ringkasan saldo</h2><div class="rg-record"><span>Tersedia</span><strong>Rp{{ number_format($balance->available??0,0,',','.') }}</strong></div><div class="rg-record"><span>Tertunda</span><strong>Rp{{ number_format($balance->pending??0,0,',','.') }}</strong></div><div class="rg-record"><span>Terkunci</span><strong>Rp{{ number_format($balance->locked??0,0,',','.') }}</strong></div></section></div>
 @if(auth()->user()->role === 'super_admin')
 <section class="glass" style="margin-top:16px">
-<h2>Verifikasi Rekening</h2>
+<h2>Verifikasi Rekening</h2><p><a class="btn secondary" href="/admin/bank-provider">⚙ Pengaturan API Verifikasi Bank →</a></p>
 <p class="muted small">Verifikasi manual oleh Super Admin. Periksa nama dan nomor rekening melalui sumber bank yang tepercaya sebelum menyetujui. Persetujuan manual bukan hasil inquiry API.</p>
 @if($member->bank_code && $member->bank_account)
 <p><strong>{{ $member->bank_code }}</strong> · {{ $member->bank_account }}</p>
