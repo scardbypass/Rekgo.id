@@ -64,3 +64,12 @@ Route::middleware(['auth','admin','throttle:5,1'])->prefix('admin/users')->group
  Route::post('/{user}/contact',[\App\Http\Controllers\AdminUserAccountController::class,'contact'])->whereNumber('user');
  Route::post('/{user}/password',[\App\Http\Controllers\AdminUserAccountController::class,'password'])->whereNumber('user');
 });
+
+// Dedicated RekGo WhatsApp bridge; Bearer token is validated inside the controller.
+// These machine-to-machine endpoints do not use browser CSRF tokens.
+Route::prefix('api/rekgo-bot')->middleware('throttle:30,1')
+ ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+ ->group(function(){
+  Route::post('/escrows',[\App\Http\Controllers\RekgoBotApiController::class,'create']);
+  Route::post('/done',[\App\Http\Controllers\RekgoBotApiController::class,'done']);
+ });
