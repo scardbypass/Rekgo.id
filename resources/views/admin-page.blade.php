@@ -74,7 +74,7 @@ $canFinance=in_array(auth()->user()->role,['super_admin','finance'],true);
 </section>
 @endif
 @if($page==='fee')
-<section class="glass rg-admin-panel" id="fee">
+<section class="glass rg-admin-panel" style="margin-bottom:15px"><h2>Biaya Transfer Bank (WD)</h2><p class="muted small">Biaya tetap yang ditambahkan saat seller mengajukan pencairan. Biaya tersimpan per transaksi dan dikembalikan jika WD ditolak.</p><p>Tarif saat ini: <strong>Rp{{ number_format((int)(\Illuminate\Support\Facades\DB::table('system_settings')->where('key','bank_transfer_fee')->value('value')??0),0,',','.') }}</strong></p>@if(auth()->user()->role==='super_admin')<form method="post" action="/admin/bank-transfer-fee">@csrf<label for="bank-fee">Biaya transfer per WD (Rp)</label><input id="bank-fee" type="number" name="fee" min="0" max="1000000" step="1" value="{{ (int)(\Illuminate\Support\Facades\DB::table('system_settings')->where('key','bank_transfer_fee')->value('value')??0) }}" required><button type="submit">Simpan Biaya Transfer</button></form>@endif</section><section class="glass rg-admin-panel" id="fee">
  <div class="rg-admin-section-title"><div><h2>Pengaturan Fee</h2><p class="muted small">Atur tarif berdasarkan jenis layanan dan batas nominal transaksi.</p></div></div>
  <div class="rg-fee-list">@forelse($tiers as $t)
  <div class="rg-fee-item"><div><strong>{{ strtoupper($t->scope) }}</strong><small>Mulai Rp{{ number_format($t->minimum,0,',','.') }}</small></div><span class="rg-fee-value">@if($t->type==='percent'){{ number_format($t->value/100,2,',','.') }}% @else Rp{{ number_format($t->value,0,',','.') }} @endif</span></div>
