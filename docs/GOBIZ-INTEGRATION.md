@@ -29,3 +29,23 @@ Konfigurasi koneksi adapter melalui environment privat VPS:
 Modul CeirGo yang dilampirkan menggunakan `GOPAY_EMAIL`, `GOPAY_PASSWORD`, `GOPAY_ACCESS_TOKEN`, `GOPAY_REFRESH_TOKEN`, dan `GOPAY_MERCHANT_ID` pada penyimpanan konfigurasi internalnya. Login dilakukan dengan password, lalu refresh token saat diperlukan; transaksi masuk dicari pada jurnal berdasarkan merchant, waktu dan nominal (nominal jurnal dalam satuan 1/100 rupiah).
 
 **Perbedaan penting:** RekGo `GopayPayments` saat ini meminta bridge `create`, `status`, `cancel`; modul CeirGo hanya menyediakan login dan pencarian jurnal. Adapter tersebut belum bisa langsung menggantikan kontrak lama. Tidak aman untuk menganggap satu kecocokan nominal sebagai bukti pembayaran invoice tertentu. Jangan gunakan sistem ini untuk dana sungguhan sebelum identitas invoice unik, penguncian klaim jurnal secara atomik, dan verifikasi rekonsiliasi selesai.
+
+## Private journal bridge contract (new)
+
+The public application may request a journal search from a separately hosted, authenticated private service. The private service must use the CeirGo GoBiz login/refresh flow and `SearchJournals` with merchant ID, exact gross amount and the invoice creation/expiry window. It must retrieve **all pages**, not only the first hit.
+
+The normalized response for `GoBizJournalVerifier::candidate` must contain `authenticated: true`, `complete: true`, `merchant_id`, and `hits`. Never set `complete` to true when provider pagination, authentication or transport failed. Each hit must include `metadata.transaction.merchant_id`, `gross_amount` in **minor units (IDR × 100)**, and `transaction_time`. The matcher returns a candidate, not authorization to credit funds.
+
+### Activation blockers
+
+- The existing `GopayPayments::create/status/cancel` calls are not supported by the CeirGo journal module; an end-to-end static-QR invoice flow must replace them before live activation.
+- Enforce a database-level unique constraint on claimed provider transaction references and a separate settlement claim/ledger idempotency key.
+- Reject ambiguous matches and overlapping invoices with the same gross amount and payment window.
+- Confirm QRIS overlay acceptance with the acquiring bank; do not assume a static QR becomes an officially supported dynamic QR.
+- Handle late credits and refunds separately, including when the invoice expires.
+- Keep `GOPAY_LIVE_VERIFIED=false` until integration and real merchant tests are complete.
+- Run Laravel scheduler with one cron entry: `* * * * * cd /rekgo && php artisan schedule:run >> /dev/null 2>&1`. This runs the existing poller only; it does not make an incompatible provider API work.
+
+### Admin configuration
+
+Super Admin → Integrations → GoPay: enter merchant email and password (encrypted on disk), save the genuine merchant QRIS text, and configure poll/expiry settings. These settings do **not** install or authenticate the private bridge. Do not paste access tokens into GitHub or chat.
