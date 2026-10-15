@@ -1,7 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{AuthController,UserController,AdminController};
-Route::view('/', 'home')->name('home');
+Route::get('/',function(){return view('home',['publicFees'=>\App\Models\FeeTier::query()->where('scope','escrow')->where('active',true)->orderBy('minimum')->get()]);})->name('home');
 Route::middleware('guest')->group(function(){Route::get('/login',[AuthController::class,'loginForm'])->name('login');Route::post('/login',[AuthController::class,'login'])->middleware('throttle:8,1');Route::post('/register',[AuthController::class,'register'])->middleware('throttle:5,1');});
 Route::middleware('auth')->group(function(){
  Route::post('/logout',[AuthController::class,'logout']);Route::get('/dashboard',[UserController::class,'dashboard']);Route::get('/transfer',[UserController::class,'transfer']);Route::get('/rekber',[UserController::class,'rekber']);Route::get('/qris',[UserController::class,'qrisPage']);Route::get('/history',[UserController::class,'history']);Route::get('/account',[UserController::class,'account']);Route::post('/profile/avatar',[UserController::class,'avatar']);Route::post('/profile/bank',[UserController::class,'bank']);Route::post('/profile/fee',[UserController::class,'settings']);Route::post('/withdrawals',[UserController::class,'withdraw'])->middleware('throttle:5,1');Route::post('/escrows',[UserController::class,'escrow'])->middleware('throttle:10,1');Route::post('/qris',[UserController::class,'qris'])->middleware('throttle:10,1');
