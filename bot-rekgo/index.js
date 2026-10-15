@@ -33,10 +33,12 @@ async function run(){
     if(match){
      const phone=sender.split('@')[0].replace(/\D/g,'');
      if(!phone)throw Error('Nomor seller tidak tersedia; gunakan akun WhatsApp bernomor telepon.');
-     const data=await api('/api/rekgo-bot/escrows',{request_id:group+':'+m.key.id,group_jid:group,seller_jid:sender,seller_phone:phone,amount:Number(match[1])});
+     const data=await api('/api/rekgo-bot/escrows',{request_id:m.key.id,group_jid:group,seller_jid:sender,seller_phone:phone,amount:Number(match[1])});
      await sock.sendMessage(group,{text:'💠 RekGo • Transaksi #'+data.id+'\nNominal: Rp'+Number(data.amount).toLocaleString('id-ID')+'\nBiaya layanan: Rp'+Number(data.fee).toLocaleString('id-ID')+'\nStatus: Menunggu pembayaran\n\n⚠️ Jangan transfer dana sebelum instruksi pembayaran resmi tersedia dan diverifikasi.'});
     }else{
-     const data=await api('/api/rekgo-bot/done',{group_jid:group,buyer_jid:sender});
+     const buyerPhone=sender.split('@')[0].replace(/\\D/g,'');
+     if(!buyerPhone)throw Error('Nomor WhatsApp tidak tersedia.');
+     const data=await api('/api/rekgo-bot/done',{group_jid:group,buyer_jid:sender,buyer_phone:buyerPhone});
      await sock.sendMessage(group,{text:'RekGo #'+data.id+': permintaan selesai diterima untuk pemeriksaan admin. Dana belum dicairkan.'});
     }
    }catch(e){await sock.sendMessage(group,{text:'RekGo: '+String(e.message).slice(0,240)});}
