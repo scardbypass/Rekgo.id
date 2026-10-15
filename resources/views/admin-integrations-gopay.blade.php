@@ -12,13 +12,13 @@
 </div>
 <div class="gap"></div>
 <section class="glass"><h2>1. Koneksi Akun GoBiz</h2>
-<p class="muted small">Masukkan email dan password merchant. Informasi disimpan terenkripsi pada storage privat server, bukan ditampilkan di browser. Penyimpanan ini belum melakukan login ke provider.</p>
+<p class="muted small">Masukkan email dan password merchant. Informasi disimpan terenkripsi pada storage privat server, bukan ditampilkan di browser. Gunakan email dan password akun merchant GoBiz milik sendiri. Penyimpanan ini belum melakukan login ke provider.</p>
 <form method="post" action="/admin/integrations/gopay/credentials">@csrf
 <label for="gobiz-email">GoBiz Email</label><input id="gobiz-email" type="email" name="email" required maxlength="254" autocomplete="username" placeholder="merchant@example.com" value="{{ old('email') }}">
 <label for="gobiz-password">GoBiz Password</label><input id="gobiz-password" type="password" name="password" {{ $credentials_saved ? '' : 'required' }} maxlength="512" autocomplete="new-password" placeholder="{{ $credentials_saved ? 'Kosongkan jika tidak ingin mengganti' : 'Password merchant' }}">
 <label><input type="checkbox" style="width:auto" onclick="document.getElementById('gobiz-password').type=this.checked?'text':'password'"> Tampilkan password saat mengetik</label>
-<button type="submit">Simpan Kredensial Aman</button></form>
-<p class="muted small">Login dan refresh token memerlukan adapter GoBiz yang sesuai dan pengujian akun. Jangan memasukkan OTP di halaman yang belum terhubung.</p></section>
+<button type="submit">Simpan Akun GoBiz</button></form>
+<p class="muted small">Langkah: (1) Masukkan email GoBiz, (2) masukkan password, (3) klik Simpan Akun GoBiz, (4) tempel QRIS Text merchant pada bagian 3, (5) jalankan pengujian khusus Super Admin. Token dan pengecekan jurnal otomatis belum terhubung; jangan mengaktifkan live sebelum berhasil diuji.</p></section>
 <div class="gap"></div>
 <section class="glass"><h2>2. Pengaturan QRIS Statis</h2>
 <p><span class="pill">{{ config('rekgo.gopay_live_verified') ? 'Server ditandai terverifikasi' : 'Live terkunci untuk keamanan' }}</span></p>
@@ -43,7 +43,7 @@
 <textarea id="qris-text" name="qris_text" rows="6" required minlength="20" maxlength="4096" style="width:100%;font-family:monospace">{{ old('qris_text',$qris_text) }}</textarea>
 <button type="submit">Simpan QRIS Text</button></form>
 @if($qris_text !== '')
-<details open style="margin-top:16px"><summary><strong>Lihat QRIS Text tersimpan</strong></summary>
+<details style="margin-top:16px"><summary><strong>Lihat QRIS Text tersimpan</strong></summary>
 <pre style="white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;padding:12px;border:1px solid var(--line);border-radius:12px">{{ $qris_text }}</pre>
 </details>
 @endif
