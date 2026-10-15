@@ -24,6 +24,27 @@ class AdminController {
   },3);
   return redirect('/admin/users/'.$user->id)->with('ok','Penyesuaian saldo berhasil dan tercatat di ledger.');
  }
+ public function verifyUserBank(Request $r,User $user,Wallet $w){
+  $this->super($r);
+  $d=$r->validate(['decision'=>'required|in:approve,reject','bank_name'=>'required_if:decision,approve|nullable|string|min:3|max:120','reason'=>'required_if:decision,reject|nullable|string|max:500']);
+  DB::transaction(function()use($r,$user,$w,$d){
+   $locked=User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+   abort_unless($locked->bank_code && $locked->bank_account,422,'Pengguna belum menyimpan rekening.');
+   if($d['decision']==='approve'){
+    $locked->bank_name=trim($d['bank_name']);
+    $locked->bank_verified_at=now();
+   }else{
+    $locked->bank_name=null;
+    $locked->bank_verified_at=null;
+   }
+   $locked->save();
+   $w->audit($r->user()->id,'bank.manual_'.$d['decision'],'user',$locked->id,[
+    'bank_code'=>$locked->bank_code,'account_last4'=>substr($locked->bank_account,-4),
+    'account_name'=>$locked->bank_name,'reason'=>$d['reason']??null,'method'=>'manual'
+   ]);
+  },3);
+  return back()->with('ok',$d['decision']==='approve'?'Rekening disetujui manual. Nama penerima kini tampil dan WD dapat diajukan.':'Verifikasi rekening ditolak/dicabut.');
+ }
  public function verify(Request $r,Withdrawal $wd,Wallet $w){$this->finance($r);abort_unless($wd->status==='pending',409);abort(501,'Verifikasi nama rekening membutuhkan integrasi API bank resmi; tidak bisa disetujui secara manual sebagai hasil inquiry.');}
  public function process(Request $r,Withdrawal $wd,Wallet $w){$this->finance($r);DB::transaction(function()use($r,$wd,$w){$wd=Withdrawal::whereKey($wd->id)->lockForUpdate()->firstOrFail();abort_unless($wd->status==='pending'&&$wd->verified_at&&$wd->bank_name,409,'Rekening belum terverifikasi.');$wd->update(['status'=>'processing','processed_by'=>$r->user()->id]);$w->audit($r->user()->id,'withdrawal.processing','withdrawal',$wd->id);});return back()->with('ok','WD masuk Proses.');}
  public function success(Request $r,Withdrawal $wd,Wallet $w){$this->finance($r);$d=$r->validate(['bank_reference'=>'required|string|max:150','proof'=>'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120','notes'=>'nullable|string|max:1000']);DB::transaction(function()use($r,$wd,$w,$d){$wd=Withdrawal::whereKey($wd->id)->lockForUpdate()->firstOrFail();abort_unless($wd->status==='processing',409);$b=$w->balance($wd->user_id);$proof=$r->hasFile('proof')?$r->file('proof')->store('transfer-proofs','local'):null;$wd->update(['status'=>'success','bank_reference'=>$d['bank_reference'],'proof_path'=>$proof,'notes'=>$d['notes']??null,'completed_by'=>$r->user()->id,'completed_at'=>now()]);$w->move($b,'locked',-$wd->amount,'withdrawal',$wd->id,'WD berhasil dibayar');$w->audit($r->user()->id,'withdrawal.success','withdrawal',$wd->id,['bank_reference'=>$d['bank_reference']]);});return back()->with('ok','Transfer selesai dan ledger diperbarui. Pastikan transfer bank sungguhan telah diverifikasi sebelum menekan Success.');}
