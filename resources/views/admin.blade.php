@@ -10,6 +10,9 @@
 <a class="glass" href="/admin/page/admins"><span class="rg-icon">♧</span><h2>Admin</h2><p class="muted">Kelola akses staf</p></a>
 <a class="glass" href="/admin/page/audits"><span class="rg-icon">◷</span><h2>Audit log</h2><p class="muted">Riwayat tindakan admin</p></a>
 <a class="glass" href="/admin/integrations"><span class="rg-icon">⌘</span><h2>Integrasi</h2><p class="muted">Bot dan payment gateway</p></a>
+@if(auth()->user()->role === 'super_admin')
+<a class="glass" href="/admin/bank-provider"><span class="rg-icon">▣</span><h2>Verifikasi API Bank</h2><p class="muted">Endpoint, kredensial, request & mapping JSON</p></a>
+@endif
 <a class="glass" href="/admin/v4"><span class="rg-icon">⚙</span><h2>Pengaturan</h2><p class="muted">Maintenance dan pengumuman</p></a>
 </div>
 <section class="glass rg-compact-panel rg-panel-spaced"><div class="rg-history-head"><span class="rg-history-symbol rg-symbol-transfer">↗</span><div class="rg-history-heading"><h2>Pencairan terbaru</h2><p>Permintaan WD yang perlu dipantau</p></div><a class="rg-action-link" href="/admin/page/acc">Semua <span>→</span></a></div><div class="rg-records">@forelse($withdrawals->take(5) as $wd)<div class="rg-record"><div><strong>{{ $wd->user?->username ?? 'Pengguna' }}</strong><small>WD #{{ $wd->id }} · {{ $wd->status }}</small></div><div class="rg-record-right"><strong>Rp{{ number_format($wd->amount,0,',','.') }}</strong></div></div>@empty<div class="rg-history-empty"><span>↗</span><strong>Belum ada pencairan</strong><p>Permintaan transfer akan tampil di sini.</p></div>@endforelse</div></section>
