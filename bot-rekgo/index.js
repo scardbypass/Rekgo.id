@@ -58,7 +58,11 @@ async function run(){
   if(connection==='connecting'){bridge.connection='connecting';bridge.updatedAt=new Date().toISOString();}
   if(connection==='open'){bridge.connection='online';bridge.qr=null;bridge.pairingCode=null;bridge.updatedAt=new Date().toISOString();console.log('WhatsApp connected');}
   if(connection==='close'){bridge.connection='offline';bridge.qr=null;bridge.updatedAt=new Date().toISOString();console.warn('WhatsApp disconnected',lastDisconnect?.error?.output?.statusCode||'unknown');}
-  if(connection==='close' && lastDisconnect?.error?.output?.statusCode!==DisconnectReason.loggedOut)setTimeout(run,3000);
+  if(connection==='close'){
+   const code=lastDisconnect?.error?.output?.statusCode;
+   if(code===405){console.error('WA rejected registration (405). Stop retrying; check Baileys compatibility and session.');return;}
+   if(code!==DisconnectReason.loggedOut)setTimeout(run,10000);
+  }
  });
  sock.ev.on('messages.upsert',async({messages,type})=>{
   if(type!=='notify')return;
