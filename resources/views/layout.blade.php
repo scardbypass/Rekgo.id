@@ -1,4 +1,4 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>RekGo • by CeirGo</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="{{ asset('css/rekgo-admin.css') }}"><meta name="theme-color" content="#1769f4"><style>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>RekGo • by CeirGo</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="{{ asset('css/rekgo-admin.css') }}"><link rel="stylesheet" href="{{ asset('css/rekgo-mobile.css') }}"><meta name="theme-color" content="#1769f4"><style>
 :root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light;--bg:#eaf3ff;--fg:#0b2446;--muted:#62748b;--glass:#ffffffb8;--line:#ffffffc9;--blue:#1769f4;--shadow:0 15px 50px #3473bf1e}html[data-theme=dark]{color-scheme:dark;--bg:#061325;--fg:#f2f7ff;--muted:#a4bad4;--glass:#102d4bc7;--line:#41668b88;--blue:#4897ff;--shadow:0 15px 60px #0005}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 0,#6caeff50,transparent 36%),radial-gradient(circle at 85% 20%,#a6b9ff50,transparent 30%),var(--bg);color:var(--fg)}.wrap{max-width:1060px;margin:auto;padding:20px 16px 90px}.glass{background:var(--glass);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:22px}.card{background:linear-gradient(135deg,#6bc4ff,#1b70ef 55%,#103b8d);color:white;border:2px solid #ffffff80;box-shadow:inset 0 2px 8px #ffffffa0,0 20px 38px #1463bb55;border-radius:30px;padding:30px;min-height:225px;position:relative;overflow:hidden}.card:after{content:'';position:absolute;inset:-80% -50% 35% 15%;transform:rotate(-15deg);border-radius:50%;background:linear-gradient(90deg,#fff0,#ffffff50,#fff0);pointer-events:none}.card h1{font-size:clamp(27px,5vw,40px);margin:16px 0 26px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px}.muted{color:var(--muted)}.small{font-size:13px}.pill{padding:5px 11px;border-radius:20px;background:#3589ef30;font-size:12px;font-weight:700}.success{color:#00996a}.pending{color:#c78305}.processing{color:#1d8cdd}.rejected{color:#e34d56}input,select,button,textarea{font:inherit}input,select,textarea{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--fg);margin:6px 0 12px}button,.btn{background:var(--blue);border:0;color:white;border-radius:14px;padding:12px 17px;cursor:pointer;font-weight:650;text-decoration:none;display:inline-block}button.secondary,.btn.secondary{background:#6a8db03d;color:var(--fg)}button:disabled{opacity:.5;cursor:not-allowed}label{font-size:13px;font-weight:650}h2{font-size:21px}h3{font-size:16px}.stack>*+*{margin-top:15px}.tabs{display:flex;gap:10px;flex-wrap:wrap}.tabs a{color:var(--fg);text-decoration:none;padding:10px 13px;border-radius:14px;background:var(--glass)}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:13px}.scroll{overflow-x:auto}.flash{background:#33b58125;padding:14px;border-radius:15px;margin:15px 0}.err{background:#f4433625;padding:14px;border-radius:15px;margin:15px 0}.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(96%,480px);display:flex;justify-content:space-around;background:var(--glass);backdrop-filter:blur(30px);border:1px solid var(--line);padding:10px;border-radius:25px;z-index:4}.nav a{text-decoration:none;color:var(--fg);font-size:12px}.logo{font-size:24px;font-weight:900;letter-spacing:-1px}.chip{display:inline-block;border-radius:15px;background:#ffffff70;color:#1257a9;padding:8px;font-weight:700}.card .muted{color:#e2efff}.card .row{align-items:end}.card .row div{min-width:0}.card .row strong{font-size:clamp(12px,2.3vw,16px)}.gap{height:14px}@media(max-width:520px){.card{padding:21px;min-height:210px}.glass{padding:17px}.wrap{padding:14px 12px 90px}}
 
 /* RekGo dashboard design system */
@@ -93,18 +93,18 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 @if(auth()->check())
 <nav class="nav {{ request()->is('admin') || request()->is('admin/*') ? 'rg-admin-nav' : '' }}" aria-label="Navigasi utama">
 @if((request()->is('admin') || request()->is('admin/*')) && auth()->user()->isAdmin())
-<a href="/admin" aria-label="Ringkasan admin">⌂ Ringkasan</a>
-<a href="/admin/page/acc">↗ Pencairan</a>
-<a href="/admin/page/users">♙ Pengguna</a>
-<a href="/admin/page/fee">◇ Fee</a>
-<a href="/dashboard">⇄ User</a>
+<a href="/admin" @if(request()->is('admin')) aria-current="page" @endif aria-label="Ringkasan admin">⌂ Ringkasan</a>
+<a href="/admin/page/acc" @if(request()->is('admin/page/acc')) aria-current="page" @endif>↗ Pencairan</a>
+<a href="/admin/page/users" @if(request()->is('admin/page/users')) aria-current="page" @endif>♙ Pengguna</a>
+<a href="/admin/page/fee" @if(request()->is('admin/page/fee')) aria-current="page" @endif>◇ Fee</a>
+<a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⇄ User</a>
 @else
-<a href="/dashboard">⌂ Beranda</a>
-<a href="/transfer">↗ Transfer</a>
-<a href="/history">◷ Riwayat</a>
-<a href="/account">♙ Akun</a>
+<a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⌂ Beranda</a>
+<a href="/transfer" @if(request()->is('transfer')) aria-current="page" @endif>↗ Transfer</a>
+<a href="/history" @if(request()->is('history')) aria-current="page" @endif>◷ Riwayat</a>
+<a href="/account" @if(request()->is('account')) aria-current="page" @endif>♙ Akun</a>
 @if(auth()->user()->isAdmin())
-<a href="/admin">⚙ Admin</a>
+<a href="/admin" @if(request()->is('admin')) aria-current="page" @endif>⚙ Admin</a>
 @endif
 @endif
 </nav>
