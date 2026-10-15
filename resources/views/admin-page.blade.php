@@ -2,7 +2,68 @@
 @section('content')
 <div class="rg-page-heading"><a href="/admin" style="color:var(--blue);text-decoration:none">← Admin Center</a><h1>{{ ['acc'=>'Pencairan & Persetujuan','users'=>'Pengguna RekGo','fee'=>'Pengaturan Biaya','admins'=>'Manajemen Admin','audits'=>'Audit Log'][$page] ?? 'Admin' }}</h1><p>RekGo • by CeirGo</p></div>
 @if($page==='acc')
-<section class="glass" id="acc"><h2>ACC Transfer</h2><p class="muted small">Rekening lengkap hanya untuk Finance / Super Admin. Proses bank sebenarnya dilakukan terpisah; verifikasi provider diperlukan.</p>@foreach($withdrawals as $wd)<details style="padding:12px;border-bottom:1px solid var(--line)"><summary><b>WD #{{$wd->id}}</b> — {{$wd->user->username}} — Rp{{number_format($wd->amount,0,',','.')}} — <span class="{{$wd->status}}">{{$wd->status}}</span></summary><p>Bank: {{$wd->bank_code}} @if(in_array(auth()->user()->role,['super_admin','finance']))<br>Nomor lengkap: <b>{{$wd->bank_account}}</b><br>Nama: {{$wd->bank_name}}</p>@if($wd->status==='pending')<form method="post" action="/admin/withdrawals/{{$wd->id}}/process">@csrf<button @if(!$wd->verified_at) disabled @endif>Proses Transfer</button></form><form method="post" action="/admin/withdrawals/{{$wd->id}}/reject">@csrf<label>Alasan Tolak</label><input name="reason" required minlength="5"><button>Tolak</button></form>@elseif($wd->status==='processing')<form method="post" enctype="multipart/form-data" action="/admin/withdrawals/{{$wd->id}}/success">@csrf<label>Referensi Bank (wajib)</label><input name="bank_reference" required><label>Bukti Transfer (opsional)</label><input type="file" name="proof" accept="image/*,application/pdf"><label>Catatan</label><textarea name="notes"></textarea><button>Konfirmasi Success</button></form>@elseif($wd->proof_path)<a class="btn" href="/admin/withdrawals/{{$wd->id}}/proof">Unduh Bukti</a>@endif @else <br>Rekening disembunyikan untuk Support.</p>@endif @if($wd->rejected_reason)<p>Alasan: {{$wd->rejected_reason}}</p>@endif</details>@endforeach</section>
+@php
+$pendingCount=$withdrawals->where('status','pending')->count();
+$processingCount=$withdrawals->where('status','processing')->count();
+$completedCount=$withdrawals->where('status','success')->count();
+$canFinance=in_array(auth()->user()->role,['super_admin','finance'],true);
+@endphp
+<div class="rg-admin-metrics">
+ <div class="glass rg-metric"><span>Menunggu review</span><strong>{{ $pendingCount }}</strong><small>Pengajuan masuk</small></div>
+ <div class="glass rg-metric"><span>Sedang diproses</span><strong>{{ $processingCount }}</strong><small>Menunggu konfirmasi bank</small></div>
+ <div class="glass rg-metric"><span>Berhasil</span><strong>{{ $completedCount }}</strong><small>Pencairan selesai</small></div>
+</div>
+<section class="glass rg-admin-panel" id="acc">
+ <div class="row rg-panel-heading"><div><h2>Daftar pencairan</h2><p class="muted small">Periksa detail dan status setiap permintaan transfer.</p></div><span class="pill">{{ $withdrawals->count() }} transaksi terbaru</span></div>
+ <div class="rg-admin-records">
+ @forelse($withdrawals as $wd)
+ @php
+  $state=['pending'=>['Menunggu','rg-status-wait'],'processing'=>['Diproses','rg-status-progress'],'success'=>['Berhasil','rg-status-done'],'rejected'=>['Ditolak','rg-status-failed']][$wd->status]??[ucfirst($wd->status),'rg-status-wait'];
+ @endphp
+ <details class="rg-withdrawal">
+  <summary class="rg-withdrawal-summary">
+   <span class="rg-wd-icon">↗</span>
+   <span class="rg-wd-primary"><strong>{{ $wd->user?->username ?? 'Pengguna tidak tersedia' }}</strong><small>WD #{{ $wd->id }} · {{ $wd->created_at?->format('d M Y, H:i') }}</small></span>
+   <span class="rg-wd-amount"><strong>Rp{{ number_format($wd->amount,0,',','.') }}</strong><span class="rg-status {{ $state[1] }}">{{ $state[0] }}</span></span>
+   <span class="rg-chevron" aria-hidden="true">⌄</span>
+  </summary>
+  <div class="rg-withdrawal-body">
+   <div class="rg-wd-details">
+    <div><small>Bank tujuan</small><strong>{{ $wd->bank_code ?: 'Belum tersedia' }}</strong></div>
+    <div><small>Nomor rekening</small><strong>{{ $canFinance ? ($wd->bank_account ?: '-') : '••••'.substr((string)$wd->bank_account,-4) }}</strong></div>
+    <div><small>Nama pemilik</small><strong>{{ $canFinance ? ($wd->bank_name ?: 'Belum diverifikasi') : 'Hanya Finance' }}</strong></div>
+    <div><small>Verifikasi bank</small><strong>{{ $wd->verified_at ? 'Terverifikasi' : 'Belum terverifikasi' }}</strong></div>
+   </div>
+   @if($wd->rejected_reason)<p class="rg-wd-alert">Alasan penolakan: {{ $wd->rejected_reason }}</p>@endif
+   @if($canFinance)
+    @if($wd->status==='pending')
+      <div class="rg-wd-actions">
+       <form method="post" action="/admin/withdrawals/{{ $wd->id }}/process">@csrf<button @disabled(!$wd->verified_at || !$wd->bank_name)>Mulai proses transfer →</button></form>
+       @unless($wd->verified_at && $wd->bank_name)<p class="muted small">Proses dikunci sampai verifikasi rekening selesai.</p>@endunless
+      </div>
+      <details class="rg-reject-panel"><summary>Tolak pengajuan</summary><form method="post" action="/admin/withdrawals/{{ $wd->id }}/reject">@csrf<label for="reason-{{ $wd->id }}">Alasan penolakan</label><textarea id="reason-{{ $wd->id }}" name="reason" required minlength="5" maxlength="1000" rows="2"></textarea><button type="submit" class="rg-danger-button">Konfirmasi penolakan</button></form></details>
+    @elseif($wd->status==='processing')
+      <div class="rg-wd-actions"><h3>Konfirmasi transfer bank</h3><p class="muted small">Hanya konfirmasi setelah dana benar-benar terkirim dan referensi bank cocok.</p>
+       <form method="post" enctype="multipart/form-data" action="/admin/withdrawals/{{ $wd->id }}/success">@csrf
+        <label for="ref-{{ $wd->id }}">Referensi bank</label><input id="ref-{{ $wd->id }}" name="bank_reference" required maxlength="150" autocomplete="off">
+        <label for="proof-{{ $wd->id }}">Bukti transfer (opsional)</label><input id="proof-{{ $wd->id }}" type="file" name="proof" accept="image/jpeg,image/png,application/pdf">
+        <label for="notes-{{ $wd->id }}">Catatan</label><textarea id="notes-{{ $wd->id }}" name="notes" maxlength="1000" rows="2"></textarea>
+        <button type="submit">Konfirmasi transfer berhasil</button>
+       </form>
+      </div>
+    @elseif($wd->proof_path)
+      <a class="btn secondary" href="/admin/withdrawals/{{ $wd->id }}/proof">Unduh bukti transfer</a>
+    @endif
+   @else
+    <p class="muted small">Aksi keuangan hanya tersedia untuk Finance dan Super Admin.</p>
+   @endif
+  </div>
+ </details>
+ @empty
+ <div class="rg-empty"><span>↗</span><h3>Belum ada pencairan</h3><p class="muted">Pengajuan transfer baru akan tampil di sini.</p></div>
+ @endforelse
+ </div>
+</section>
 @endif
 @if($page==='users')
 <section class="glass" id="users"><h2>User & Seller</h2><p class="muted small">Klik username untuk membuka detail pengguna, saldo, QRIS, dan riwayat pencairan.</p><div class="scroll"><table><tr><th>Username</th><th>Email</th><th>Role</th></tr>@foreach($users as $u)<tr><td><a href="/admin/users/{{$u->id}}" class="rg-user-link">{{$u->username}} →</a></td><td>{{$u->email}}</td><td>{{$u->role}}</td></tr>@endforeach</table></div></section>
