@@ -38,3 +38,8 @@ Route::middleware('auth')->group(function(){
  Route::get('/qris/{payment}',[\App\Http\Controllers\QrisController::class,'show'])->name('qris.show');
  Route::get('/qris/{payment}/image.svg',[\App\Http\Controllers\QrisController::class,'image'])->name('qris.image');
 });
+
+Route::middleware(['auth','admin','throttle:10,1'])->group(function(){
+ Route::get('/admin/integrations/gopay/live-test',[\App\Http\Controllers\GoPayLiveTestController::class,'show'])->name('admin.gopay.test');
+ Route::get('/admin/integrations/gopay/live-test/image.svg',[\App\Http\Controllers\GoPayLiveTestController::class,'image'])->name('admin.gopay.test.image');
+});
