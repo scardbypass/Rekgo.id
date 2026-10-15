@@ -17,6 +17,16 @@ class RekgoBotApiController {
   $key=(string)config('services.rekgo_bot.key','');
   abort_unless(strlen($key)>=32 && hash_equals($key,(string)$r->bearerToken()),401);
  }
+ public function account(Request $r){
+  $this->authorizeBot($r);
+  $d=$r->validate(['phone'=>'required|regex:/^[0-9]{9,16}$/']);
+  $u=$this->registeredUser($d['phone']);
+  $b=\App\Models\Balance::firstOrCreate(['user_id'=>$u->id]);
+  $wd=\App\Models\Withdrawal::where('user_id',$u->id);
+  $es=Escrow::where('seller_id',$u->id);
+  $pay=\App\Models\Payment::where('user_id',$u->id);
+  return response()->json(['name'=>$u->name,'username'=>$u->username,'balance'=>['available'=>(int)$b->available,'pending'=>(int)$b->pending,'locked'=>(int)$b->locked,'total'=>(int)$b->available+(int)$b->pending+(int)$b->locked],'bank'=>['name'=>$u->bank_code?:'-','account_masked'=>$u->bank_account?'****'.substr($u->bank_account,-4):'-','holder'=>$u->bank_name?:'-','verified'=>(bool)$u->bank_verified_at],'transactions'=>['total'=>(clone $es)->count()+(clone $pay)->count(),'escrow'=>(clone $es)->count(),'payments'=>(clone $pay)->count()],'withdrawals'=>['total'=>(clone $wd)->count(),'pending'=>(clone $wd)->whereIn('status',['pending','processing'])->count(),'completed'=>(clone $wd)->whereIn('status',['completed','success','paid'])->count(),'total_paid'=>(int)(clone $wd)->whereIn('status',['completed','success','paid'])->sum('amount')]]);
+ }
  public function create(Request $r,Wallet $wallet){
   $this->authorizeBot($r);
   $d=$r->validate(['request_id'=>'required|string|max:100','group_jid'=>'required|string|max:150','seller_jid'=>'required|string|max:150','seller_phone'=>'required|regex:/^[0-9]{9,16}$/','amount'=>'required|integer|min:1000|max:1000000000']);
