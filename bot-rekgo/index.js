@@ -3,10 +3,36 @@ import * as Baileys from '@whiskeysockets/baileys';
 const makeWASocket = Baileys.makeWASocket ?? Baileys.default?.makeWASocket ?? Baileys.default?.default ?? Baileys.default;
 const {useMultiFileAuthState,DisconnectReason} = Baileys;
 import pino from 'pino';
+import http from 'node:http';
+import QRCode from 'qrcode';
 const base=process.env.REKGO_API_URL,key=process.env.REKGO_BOT_API_KEY;
 if(!base||!key||key.length<32)throw Error('Configure REKGO_API_URL and REKGO_BOT_API_KEY');
 const authDir=process.env.REKGO_AUTH_DIR||'./auth';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const bridge={connection:'offline',qr:null,pairingCode:null,updatedAt:null};
+let currentSocket=null;
+const listenPort=Number(process.env.REKGO_BOT_CONTROL_PORT||4320);
+const control=http.createServer(async(req,res)=>{
+ const send=(code,body)=>{res.writeHead(code,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));};
+ if(req.headers.authorization!=='Bearer '+key)return send(401,{error:'unauthorized'});
+ if(req.method==='GET'&&req.url==='/status'){
+  let qrImage=null;
+  if(bridge.qr){try{qrImage=await QRCode.toDataURL(bridge.qr,{margin:1,width:280});}catch{}}
+  return send(200,{connection:bridge.connection,qr_image:qrImage,updated_at:bridge.updatedAt});
+ }
+ if(req.method==='POST'&&req.url==='/pair'){
+  if(!currentSocket)return send(503,{error:'Bot socket belum siap'});
+  if(bridge.connection==='online')return send(409,{error:'Bot sudah terhubung'});
+  let raw='';for await(const part of req){raw+=part;if(raw.length>2048)return send(413,{error:'Too large'});}
+  let phone;try{phone=JSON.parse(raw).phone;}catch{return send(422,{error:'Invalid JSON'});}
+  if(typeof phone!=='string'||!/^62[0-9]{8,13}$/.test(phone))return send(422,{error:'Nomor harus 62...'});
+  try{const code=await currentSocket.requestPairingCode(phone);bridge.pairingCode=code;return send(200,{code});}
+  catch(e){return send(502,{error:'Pairing gagal, periksa status koneksi dan coba lagi'});}
+ }
+ return send(404,{error:'Not found'});
+});
+control.listen(listenPort,'127.0.0.1',()=>console.log('RekGo WhatsApp control ready on 127.0.0.1:'+listenPort));
+
 async function api(path,payload){
  const response=await fetch(new URL(path,base),{method:'POST',headers:{'authorization':'Bearer '+key,'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
  const body=await response.json().catch(()=>({}));
@@ -16,7 +42,8 @@ async function api(path,payload){
 async function run(){
  const {state,saveCreds}=await useMultiFileAuthState(authDir);
  if(typeof makeWASocket!=='function') throw Error('Baileys socket export unavailable');
- const sock=makeWASocket({auth:state,logger:pino({level:'warn'}),printQRInTerminal:!process.env.REKGO_PAIR_PHONE});
+ const sock=makeWASocket({auth:state,logger:pino({level:'info'})});
+ currentSocket=sock;
  if(process.env.REKGO_PAIR_PHONE && !state.creds.registered){
   const phone=process.env.REKGO_PAIR_PHONE.replace(/\\D/g,'');
   if(!/^62[0-9]{8,13}$/.test(phone))throw Error('REKGO_PAIR_PHONE must start with 62');
@@ -26,7 +53,11 @@ async function run(){
   },2500);
  }
  sock.ev.on('creds.update',saveCreds);
- sock.ev.on('connection.update',({connection,lastDisconnect})=>{
+ sock.ev.on('connection.update',({connection,lastDisconnect,qr})=>{
+  if(qr){bridge.qr=qr;bridge.connection='awaiting_scan';bridge.updatedAt=new Date().toISOString();console.log('WhatsApp QR ready; open RekGo Admin → Integrations → Bots');}
+  if(connection==='connecting'){bridge.connection='connecting';bridge.updatedAt=new Date().toISOString();}
+  if(connection==='open'){bridge.connection='online';bridge.qr=null;bridge.pairingCode=null;bridge.updatedAt=new Date().toISOString();console.log('WhatsApp connected');}
+  if(connection==='close'){bridge.connection='offline';bridge.qr=null;bridge.updatedAt=new Date().toISOString();console.warn('WhatsApp disconnected',lastDisconnect?.error?.output?.statusCode||'unknown');}
   if(connection==='close' && lastDisconnect?.error?.output?.statusCode!==DisconnectReason.loggedOut)setTimeout(run,3000);
  });
  sock.ev.on('messages.upsert',async({messages,type})=>{
