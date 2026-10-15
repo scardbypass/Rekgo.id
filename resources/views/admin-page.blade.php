@@ -1,6 +1,6 @@
 @extends('layout')
 @section('content')
-<div class="rg-page-heading"><a href="/admin" style="color:var(--blue);text-decoration:none">← Admin Center</a><h1>{{ ['acc'=>'Pencairan & Persetujuan','users'=>'Pengguna RekGo','fee'=>'Pengaturan Biaya','admins'=>'Manajemen Admin','audits'=>'Audit Log'][$page] ?? 'Admin' }}</h1><p>RekGo • by CeirGo</p></div>
+<div class="rg-page-heading rg-admin-subhead"><a href="/admin" class="rg-dash-admin rg-back-button"><span aria-hidden="true">←</span> Admin Center</a><h1>{{ ['acc'=>'Pencairan & Persetujuan','users'=>'Pengguna RekGo','fee'=>'Pengaturan Biaya','admins'=>'Manajemen Admin','audits'=>'Audit Log'][$page] ?? 'Admin' }}</h1><p>RekGo • by CeirGo</p></div>
 @if($page==='acc')
 @php
 $pendingCount=$withdrawals->where('status','pending')->count();
@@ -66,10 +66,26 @@ $canFinance=in_array(auth()->user()->role,['super_admin','finance'],true);
 </section>
 @endif
 @if($page==='users')
-<section class="glass" id="users"><h2>User & Seller</h2><p class="muted small">Klik username untuk membuka detail pengguna, saldo, QRIS, dan riwayat pencairan.</p><div class="scroll"><table><tr><th>Username</th><th>Email</th><th>Role</th></tr>@foreach($users as $u)<tr><td><a href="/admin/users/{{$u->id}}" class="rg-user-link">{{$u->username}} →</a></td><td>{{$u->email}}</td><td>{{$u->role}}</td></tr>@endforeach</table></div></section>
+<section class="glass rg-admin-panel" id="users">
+ <div class="rg-admin-section-title"><div><h2>Pengguna RekGo</h2><p class="muted small">Pilih akun untuk melihat saldo, QRIS, dan riwayat pencairan.</p></div><span class="pill">{{ $users->count() }} akun</span></div>
+ <div class="rg-user-list">@forelse($users as $u)
+ <a class="rg-user-card" href="/admin/users/{{ $u->id }}"><span class="rg-user-initial">{{ strtoupper(substr($u->username,0,1)) }}</span><span class="rg-user-info"><strong>{{ $u->username }}</strong><small>{{ $u->email }}</small></span><span class="rg-user-role">{{ ucfirst(str_replace('_',' ',$u->role)) }}</span><span class="rg-user-arrow">→</span></a>
+ @empty<div class="rg-empty"><h3>Belum ada pengguna</h3><p class="muted">Akun yang terdaftar akan tampil di sini.</p></div>@endforelse</div>
+</section>
 @endif
 @if($page==='fee')
-<section class="glass" id="fee"><h2>Pengaturan Fee</h2><p class="muted small">Kelola biaya berdasarkan nominal minimum. Nilai persentase memakai basis poin: 100 = 1%, 250 = 2,5%. Perubahan tier berlaku pada perhitungan transaksi berikutnya.</p><div class="scroll"><table><tr><th>Jenis</th><th>Minimum</th><th>Fee</th></tr>@foreach($tiers as $t)<tr><td>{{$t->scope}}</td><td>Rp{{number_format($t->minimum,0,',','.')}}</td><td>@if($t->type==='percent'){{ number_format($t->value/100,2,',','.') }}% @else Rp{{ number_format($t->value,0,',','.') }} @endif</td></tr>@endforeach</table></div>@if(auth()->user()->role==='super_admin')<form method="post" action="/admin/fees">@csrf<label>Jenis</label><select name="scope"><option>escrow</option><option>qris</option></select><label>Minimal nominal</label><input type="number" name="minimum" min="0" required><label>Jenis Fee</label><select name="type"><option value="flat">Flat (rupiah)</option><option value="percent">Persentase (basis poin: 100 = 1%)</option></select><label>Nilai</label><input type="number" name="value" min="0" required><button>Simpan Tier</button></form>@endif</section>
+<section class="glass rg-admin-panel" id="fee">
+ <div class="rg-admin-section-title"><div><h2>Pengaturan Fee</h2><p class="muted small">Atur tarif berdasarkan jenis layanan dan batas nominal transaksi.</p></div></div>
+ <div class="rg-fee-list">@forelse($tiers as $t)
+ <div class="rg-fee-item"><div><strong>{{ strtoupper($t->scope) }}</strong><small>Mulai Rp{{ number_format($t->minimum,0,',','.') }}</small></div><span class="rg-fee-value">@if($t->type==='percent'){{ number_format($t->value/100,2,',','.') }}% @else Rp{{ number_format($t->value,0,',','.') }} @endif</span></div>
+ @empty<div class="rg-fee-empty"><strong>Belum ada tier biaya</strong><p class="muted small">Tambahkan aturan biaya pertama melalui formulir di bawah.</p></div>@endforelse</div>
+ @if(auth()->user()->role==='super_admin')
+ <div class="rg-fee-form-head"><h3>Tambah tier biaya</h3><p class="muted small">Persentase memakai basis poin: 100 = 1%, 250 = 2,5%. Perubahan hanya berlaku untuk transaksi berikutnya.</p></div>
+ <form method="post" action="/admin/fees" class="rg-fee-form">@csrf
+ <div class="rg-form-grid"><div><label for="fee-scope">Jenis layanan</label><select id="fee-scope" name="scope" required><option value="escrow">Rekber</option><option value="qris">QRIS</option></select></div><div><label for="fee-min">Minimal nominal (Rp)</label><input id="fee-min" type="number" name="minimum" min="0" step="1" placeholder="Contoh: 10000" required></div><div><label for="fee-type">Jenis fee</label><select id="fee-type" name="type" required><option value="flat">Nominal tetap (Rp)</option><option value="percent">Persentase (basis poin)</option></select></div><div><label for="fee-value">Nilai fee</label><input id="fee-value" type="number" name="value" min="0" step="1" placeholder="Contoh: 100" required></div></div>
+ <button type="submit" class="rg-fee-submit">Simpan tier biaya →</button></form>
+ @endif
+</section>
 @endif
 @if($page==='admins')
 <section class="glass" id="admins"><h2>Tambah Admin</h2>@if(auth()->user()->role==='super_admin')<form method="post" action="/admin/admins">@csrf<label>Nama</label><input name="name" required><label>Username</label><input name="username" required><label>Email</label><input name="email" type="email" required><label>Role</label><select name="role"><option value="finance">Finance</option><option value="support">Support</option><option value="super_admin">Super Admin</option></select><button>Tambah Akun Nonaktif</button></form><p class="small muted">Akun belum dapat login hingga aktivasi undangan yang aman diintegrasikan.</p>@else<p>Hanya Super Admin.</p>@endif</section>
