@@ -33,7 +33,7 @@ class UserController {
  }
  public function escrow(Request $r,Wallet $w){$d=$r->validate(['title'=>'required|string|max:150','amount'=>'required|integer|min:1000|max:1000000000']);$u=$r->user();$e=Escrow::create(['seller_id'=>$u->id,'title'=>$d['title'],'amount'=>$d['amount'],'fee'=>$w->fee('escrow',$d['amount']),'fee_payer'=>$u->fee_payer,'status'=>'pending','expires_at'=>now()->addDay()]);$w->audit($u->id,'escrow.created','escrow',$e->id);return back()->with('ok','TRX rekber dibuat; menunggu pembayaran terverifikasi.');}
  public function qris(Request $r,Wallet $w,\App\Services\StaticQris $qris,\App\Services\QrisAmountPayload $amountPayload){
-  $d=$r->validate(['amount'=>'required|integer|min:1000|max:1000000000','fee_payer'=>'required|in:receiver']);
+  $d=$r->validate(['amount'=>'required|integer|min:1000|max:999999999','fee_payer'=>'required|in:receiver']);
   $payload=$qris->payload();
   $fee=$w->fee('qris',(int)$d['amount']);
   $net=(int)$d['amount']-$fee;
