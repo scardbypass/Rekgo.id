@@ -53,6 +53,18 @@
 @media(max-width:800px){.rg-home .rg-home-hero{grid-template-columns:1fr;gap:24px;padding:27px 0 44px}.rg-home .rg-preview{max-width:600px;width:100%;margin:auto}.rg-home .rg-features{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.rg-home h1{font-size:clamp(38px,10vw,49px)}.rg-home .rg-home-hero{padding-top:16px}.rg-home .rg-preview{padding:19px;border-radius:23px}.rg-home .rg-features,.rg-home .rg-steps,.rg-home .rg-hours{grid-template-columns:1fr}.rg-home .rg-feature,.rg-home .rg-step{padding:18px}.rg-home .rg-home-section{padding:30px 0 38px}.rg-home .rg-home-actions a{flex:1 1 auto}.rg-home .rg-promo{padding:25px 20px}.rg-home .rg-final{padding:26px 6px 40px}}
 @media(prefers-reduced-motion:reduce){.rg-home .rg-home-actions a{transition:none}}
+
+.rg-home .rg-fee-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.rg-home .rg-fee-card{padding:21px;border:1px solid var(--line);border-radius:20px;background:var(--glass)}
+.rg-home .rg-fee-card small{display:block;color:var(--muted);font-size:11px;margin-bottom:8px}
+.rg-home .rg-fee-card strong{display:block;font-size:24px;letter-spacing:-.045em;color:var(--blue)}
+.rg-home .rg-fee-card p{margin:9px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.rg-home .rg-fee-calculator{margin-top:15px;padding:23px;border:1px solid var(--line);border-radius:21px;background:var(--glass)}
+.rg-home .rg-fee-calculator label{display:block;margin:0 0 7px;font-size:12px}
+.rg-home .rg-fee-calculator input{width:100%;max-width:420px}
+.rg-home .rg-fee-result{font-size:14px;line-height:1.8;margin-top:12px}
+.rg-home .rg-fee-result strong{color:var(--blue);font-size:19px}
+@media(max-width:540px){.rg-home .rg-fee-grid{grid-template-columns:1fr}}
 </style>
 <main class="rg-home">
 <section class="rg-home-hero" aria-labelledby="rg-home-title">
@@ -67,6 +79,27 @@
 <article class="rg-feature"><span class="rg-feature-icon">📱</span><h3>Semua dari Genggaman</h3><p>WhatsApp untuk interaksi grup dan dashboard RekGo untuk mengakses akun.</p></article>
 <article class="rg-feature"><span class="rg-feature-icon">💎</span><h3>Modern & Praktis</h3><p>Alur jelas, notifikasi terstruktur, dan proses yang mudah dipahami buyer maupun seller.</p></article>
 </div></section>
+<section class="rg-home-section" id="tarif"><div class="rg-section-head"><span class="rg-eyebrow">TARIF LAYANAN REKGO</span><h2>Biaya jelas sejak awal. <span class="rg-gradient">Tanpa tebak-tebakan.</span></h2><p>Seller dan buyer bisa melihat tarif rekening bersama sebelum bertransaksi. Daftar di bawah mengikuti pengaturan biaya aktif dari Admin RekGo.</p></div>
+@if($publicFees->isNotEmpty())
+<div class="rg-fee-grid">
+@foreach($publicFees as $fee)
+<article class="rg-fee-card"><small>Nominal transaksi mulai Rp{{ number_format($fee->minimum,0,',','.') }}</small><strong>@if($fee->type==='percent'){{ number_format($fee->value/100,2,',','.') }}% @else Rp{{ number_format($fee->value,0,',','.') }} @endif</strong><p>{{ $fee->type==='percent' ? 'Persentase biaya layanan berdasarkan nominal transaksi.' : 'Biaya layanan tetap untuk rentang nominal yang berlaku.' }}</p></article>
+@endforeach
+</div>
+<div class="rg-fee-calculator"><h3 style="margin:0 0 13px">Simulasi Biaya Rekber</h3><label for="rg-fee-amount">Masukkan nominal transaksi (Rp)</label><input id="rg-fee-amount" type="number" min="1000" step="1000" value="100000" inputmode="numeric"><div class="rg-fee-result" id="rg-fee-result" aria-live="polite"></div><p class="rg-home-note">Simulasi mengikuti tier aktif. Pembagian biaya antara buyer dan seller mengikuti kesepakatan serta ketentuan transaksi.</p></div>
+<script>
+(function(){
+const tiers=@json($publicFees->map(fn($t)=>['minimum'=>(int)$t->minimum,'type'=>$t->type,'value'=>(int)$t->value])->values());
+const input=document.getElementById('rg-fee-amount'),out=document.getElementById('rg-fee-result');
+const rupiah=n=>'Rp'+Math.round(n).toLocaleString('id-ID');
+function calculate(){const amount=Number(input.value);if(!Number.isFinite(amount)||amount<1000){out.textContent='Masukkan nominal minimal Rp1.000.';return;}let tier=null;for(const t of tiers){if(amount>=t.minimum)tier=t;}if(!tier){out.textContent='Belum ada tarif untuk nominal ini. Hubungi admin sebelum transaksi.';return;}const fee=tier.type==='flat'?tier.value:Math.ceil(amount*tier.value/10000);out.innerHTML='Nominal transaksi: <b>'+rupiah(amount)+'</b><br>Biaya layanan: <strong>'+rupiah(fee)+'</strong><br>Total jika biaya ditanggung buyer: <b>'+rupiah(amount+fee)+'</b>';}
+input.addEventListener('input',calculate);calculate();
+})();
+</script>
+@else
+<div class="rg-fee-card"><h3>Tarif belum dipublikasikan</h3><p>Admin RekGo belum menetapkan tier biaya rekber yang aktif. Konfirmasi tarif terlebih dahulu sebelum membuat transaksi.</p></div>
+@endif
+</section>
 <section class="rg-home-section" id="cara-kerja"><div class="rg-section-head"><span class="rg-eyebrow">CARA KERJA REKGO</span><h2>Rekber semudah <span class="rg-gradient">chat di WhatsApp.</span></h2><p>Enam langkah dari pendaftaran hingga penyelesaian. Alur bot berikut merupakan rancangan operasional dan bergantung pada kesiapan integrasi pembayaran serta WhatsApp.</p></div><div class="rg-steps">
 <article class="rg-step"><span class="rg-step-num">01</span><div><h3>Daftar Akun RekGo</h3><p>Belum punya akun? Daftar terlebih dahulu di website RekGo. Jika sudah terdaftar, langsung masuk dan lanjutkan proses.</p></div></article>
 <article class="rg-step"><span class="rg-step-num">02</span><div><h3>Buat Grup WhatsApp</h3><p>Seller membuat grup dengan nama bebas, lalu mengundang buyer dan bot resmi RekGo. Satu grup untuk koordinasi transaksi.</p></div></article>
