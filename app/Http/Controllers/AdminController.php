@@ -52,5 +52,22 @@ class AdminController {
  public function proof(Request $r,Withdrawal $wd,Wallet $w){$this->finance($r);abort_unless($wd->proof_path&&Storage::disk('local')->exists($wd->proof_path),404);$w->audit($r->user()->id,'withdrawal.proof_view','withdrawal',$wd->id);return Storage::disk('local')->download($wd->proof_path);}
  public function addAdmin(Request $r,Wallet $w){$this->super($r);$d=$r->validate(['name'=>'required|string|max:100','username'=>'required|alpha_dash|unique:users','email'=>'required|email|unique:users','role'=>'required|in:super_admin,finance,support']);$temp=Str::random(40);$u=User::create($d+['password'=>$temp]);$w->audit($r->user()->id,'admin.created','user',$u->id,['role'=>$u->role]);return back()->with('ok','Akun admin dibuat dalam keadaan belum dapat diakses. Integrasikan email undangan + reset password aman sebelum aktivasi.');}
  public function bankTransferFee(Request $r,Wallet $w){$this->super($r);$d=$r->validate(['fee'=>'required|integer|min:0|max:1000000']);DB::table('system_settings')->updateOrInsert(['key'=>'bank_transfer_fee'],['value'=>(string)$d['fee'],'created_at'=>now(),'updated_at'=>now()]);$w->audit($r->user()->id,'bank_transfer_fee.updated','system_settings',0,['fee'=>$d['fee']]);return back()->with('ok','Biaya transfer bank berhasil diperbarui.');}
- public function tier(Request $r,Wallet $w){$this->super($r);$d=$r->validate(['scope'=>'required|in:escrow,qris','minimum'=>'required|integer|min:0','type'=>'required|in:flat,percent','value'=>'required|integer|min:0|max:10000000']);abort_if($d['type']==='percent'&&$d['value']>10000,422,'Persen maksimal 100% (basis poin).');$tier=FeeTier::updateOrCreate(['scope'=>$d['scope'],'minimum'=>$d['minimum']],$d+['active'=>true]);$w->audit($r->user()->id,'fee.updated','fee_tier',$tier->id,$d);return back()->with('ok','Tier fee diperbarui.');}
+ public function tier(Request $r,Wallet $w){
+  $this->super($r);
+  $d=$r->validate(['scope'=>'required|in:escrow,qris','minimum'=>'required|integer|min:0','maximum'=>'required|integer|gte:minimum|max:1000000000','type'=>'required|in:flat,percent','value'=>'required|integer|min:0|max:10000000']);
+  abort_if($d['type']==='percent'&&$d['value']>10000,422,'Persentase maksimal 100%.');
+  DB::transaction(function()use($d,$r,$w){
+   $existing=FeeTier::where('scope',$d['scope'])->where('minimum',$d['minimum'])->lockForUpdate()->first();
+   $overlap=FeeTier::where('scope',$d['scope'])->where('active',true)->where('minimum','<=',$d['maximum'])->where(function($q)use($d){$q->whereNull('maximum')->orWhere('maximum','>=',$d['minimum']);});
+   if($existing)$overlap->where('id','!=',$existing->id);
+   abort_if($overlap->exists(),422,'Rentang nominal bertabrakan dengan tier yang sudah ada.');
+   $tier=FeeTier::updateOrCreate(['scope'=>$d['scope'],'minimum'=>$d['minimum']],$d+['active'=>true]);
+   $w->audit($r->user()->id,'fee.updated','fee_tier',$tier->id,$d);
+  });
+  return back()->with('ok','Tarif per transaksi berhasil disimpan.');
+ }
+ public function deleteTier(Request $r,FeeTier $tier,Wallet $w){
+  $this->super($r);$tier->update(['active'=>false]);$w->audit($r->user()->id,'fee.disabled','fee_tier',$tier->id);return back()->with('ok','Tarif dinonaktifkan.');
+ }
+
 }
