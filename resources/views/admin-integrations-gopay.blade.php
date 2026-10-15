@@ -35,8 +35,18 @@
 <p class="muted small">Tempel payload QRIS statis resmi merchant. Teks ditampilkan lengkap dan dapat diedit.</p>
 <form method="post" action="/admin/integrations/gopay/qris-text">@csrf
 <label for="qris-text">QRIS Text</label>
+@if($qris_text !== '')
+<p class="muted small">QRIS tersimpan. Payload lengkap tetap ditampilkan di bawah dan bisa diperbarui.</p>
+@else
+<p class="muted small">Belum ada QRIS Text yang tersimpan.</p>
+@endif
 <textarea id="qris-text" name="qris_text" rows="6" required minlength="20" maxlength="4096" style="width:100%;font-family:monospace">{{ old('qris_text',$qris_text) }}</textarea>
 <button type="submit">Simpan QRIS Text</button></form>
+@if($qris_text !== '')
+<details open style="margin-top:16px"><summary><strong>Lihat QRIS Text tersimpan</strong></summary>
+<pre style="white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;padding:12px;border:1px solid var(--line);border-radius:12px">{{ $qris_text }}</pre>
+</details>
+@endif
 <p class="muted small">Tersimpan terenkripsi. Pembayaran otomatis tetap nonaktif sampai pengujian selesai.</p></section>
 <div class="gap"></div>
 <section class="glass"><h2>4. Status & Monitoring</h2>
