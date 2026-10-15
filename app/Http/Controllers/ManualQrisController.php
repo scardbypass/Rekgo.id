@@ -19,7 +19,7 @@ final class ManualQrisController
 
     public function decide(Request $request, Payment $payment, Wallet $wallet)
     {
-        abort_unless(in_array($request->user()?->role, ['admin','super_admin'], true), 403);
+        abort_unless(in_array($request->user()?->role, ['super_admin','finance'], true), 403);
         $data = $request->validate([
             'decision' => 'required|in:approve,cancel',
             'reference' => 'required_if:decision,approve|nullable|string|regex:/^[A-Za-z0-9_.:\-]{8,150}$/',
