@@ -75,6 +75,15 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 .rg-notice h2{margin-top:0}
 .glass form{max-width:100%}
 @media(max-width:700px){.rg-settings-grid{grid-template-columns:1fr}.rg-record{padding:14px 0}.rg-record-right{font-size:13px}.rg-avatar{width:48px;height:48px}}
+/* Mobile dock v6: icon-over-label, balanced six-tab admin navigation */
+.nav{gap:5px;align-items:stretch}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;line-height:1.2;letter-spacing:0}
+.rg-nav-icon{font-size:19px;line-height:1.1;font-weight:500}
+.rg-nav-label{font-size:10px;line-height:1.2;font-weight:700}
+.rg-admin-nav{width:min(calc(100% - 22px),540px);padding:8px 7px;border-radius:24px}
+.rg-admin-nav a{padding:8px 1px;white-space:normal;min-height:51px;border-radius:16px}
+@media(max-width:430px){.rg-admin-nav{width:calc(100% - 18px);padding:7px 5px;gap:2px}.rg-admin-nav a{font-size:inherit;padding:7px 1px;min-height:48px}.rg-admin-nav .rg-nav-icon{font-size:18px}.rg-admin-nav .rg-nav-label{font-size:9px}}
+@media(prefers-reduced-motion:no-preference){.nav a{transition:background .25s ease,color .25s ease,transform .25s ease}.nav a:active{transform:scale(.95)}}
 </style><link rel="stylesheet" href="{{ asset('css/rekgo-admin.css') }}?v=20261015d"><link rel="stylesheet" href="{{ asset('css/rekgo-mobile.css') }}?v=20261015c"><script>document.documentElement.dataset.theme=localStorage.getItem('rekgo-theme')||'light';function toggleTheme(){let n=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=n;localStorage.setItem('rekgo-theme',n)}</script></head><body><div class="wrap"><header class="row" style="margin-bottom:20px"><div><span class="logo">💠 RekGo</span><div class="muted small">by CeirGo</div></div><div class="row"><button class="secondary" onclick="toggleTheme()" type="button">☀︎ / ☾</button>
 @if(auth()->check())
 <form action="/logout" method="post">
@@ -93,12 +102,12 @@ html[data-theme=dark] input:not([type=checkbox]),html[data-theme=dark] select,ht
 @if(auth()->check())
 <nav class="nav {{ request()->is('admin') || request()->is('admin/*') ? 'rg-admin-nav' : '' }}" aria-label="Navigasi utama">
 @if((request()->is('admin') || request()->is('admin/*')) && auth()->user()->isAdmin())
-<a href="/admin" @if(request()->is('admin')) aria-current="page" @endif aria-label="Ringkasan admin">⌂ Ringkasan</a>
-<a href="/admin/page/acc" @if(request()->is('admin/page/acc')) aria-current="page" @endif>↗ Pencairan</a>
-<a href="/admin/page/users" @if(request()->is('admin/page/users')) aria-current="page" @endif>♙ Pengguna</a>
-<a href="/admin/manual-qris" @if(request()->is('admin/manual-qris')) aria-current="page" @endif>▦ QRIS</a>
-<a href="/admin/page/fee" @if(request()->is('admin/page/fee')) aria-current="page" @endif>◇ Fee</a>
-<a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⇄ User</a>
+<a href="/admin" @if(request()->is('admin')) aria-current="page" @endif aria-label="Ringkasan admin"><span class="rg-nav-icon" aria-hidden="true">⌂</span><span class="rg-nav-label">Ringkasan</span></a>
+<a href="/admin/page/acc" @if(request()->is('admin/page/acc')) aria-current="page" @endif><span class="rg-nav-icon" aria-hidden="true">↗</span><span class="rg-nav-label">Pencairan</span></a>
+<a href="/admin/page/users" @if(request()->is('admin/page/users')) aria-current="page" @endif><span class="rg-nav-icon" aria-hidden="true">♙</span><span class="rg-nav-label">Pengguna</span></a>
+<a href="/admin/manual-qris" @if(request()->is('admin/manual-qris')) aria-current="page" @endif><span class="rg-nav-icon" aria-hidden="true">▦</span><span class="rg-nav-label">QRIS</span></a>
+<a href="/admin/page/fee" @if(request()->is('admin/page/fee')) aria-current="page" @endif><span class="rg-nav-icon" aria-hidden="true">◇</span><span class="rg-nav-label">Fee</span></a>
+<a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif><span class="rg-nav-icon" aria-hidden="true">⇄</span><span class="rg-nav-label">User</span></a>
 @else
 <a href="/dashboard" @if(request()->is('dashboard')) aria-current="page" @endif>⌂ Beranda</a>
 <a href="/transfer" @if(request()->is('transfer')) aria-current="page" @endif>↗ Transfer</a>
