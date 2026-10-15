@@ -21,7 +21,28 @@ final class GoPayLiveTestController
         return view('admin-gopay-live-test', ['ready' => $ready]);
     }
 
-    public function image(Request $request, StaticQris $qris, \\App\\Services\\QrisAmountPayload $amountPayload)
+    public function check(Request $request, \App\Services\GopayBridge $bridge)
+    {
+        $this->authorizeOwner($request);
+        $data = $request->validate(['reference' => ['required', 'string', 'regex:/^[A-Za-z0-9_.:-]{8,150}$/']]);
+        try {
+            $result = $bridge->call('status', ['reference' => $data['reference']]);
+        } catch (\Throwable $e) {
+            return back()->with('check_result', 'Belum dapat diverifikasi: koneksi jurnal/status GoPay belum tersedia atau referensi tidak didukung.');
+        }
+        $entry = is_array($result['data'] ?? null) ? $result['data'] : $result;
+        $status = strtolower((string)($entry['transaction_status'] ?? $entry['status'] ?? ''));
+        $ref = (string)($entry['transaction_id'] ?? $entry['transactionId'] ?? $entry['id'] ?? '');
+        $amount = $entry['gross_amount'] ?? $entry['grossAmount'] ?? $entry['amount'] ?? null;
+        $valid = $ref !== '' && hash_equals($data['reference'], $ref)
+            && \App\Services\ExactIdrAmount::matches($amount, 1001)
+            && in_array($status, ['settlement', 'capture', 'paid', 'success'], true);
+        return back()->with('check_result', $valid
+            ? 'Status provider menyatakan pembayaran Rp1.001 berhasil untuk referensi tersebut. Periksa mutasi merchant; saldo RekGo tidak ditambah.'
+            : 'Pembayaran BELUM terverifikasi. Status, referensi, atau nominal tidak cocok. Periksa mutasi merchant.');
+    }
+
+    public function image(Request $request, StaticQris $qris, \App\Services\QrisAmountPayload $amountPayload)
     {
         $this->authorizeOwner($request);
         try { $payload = $amountPayload->withAmount($qris->payload(), 1001); }
