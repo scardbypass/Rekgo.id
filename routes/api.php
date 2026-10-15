@@ -1,7 +1,3 @@
 <?php
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RekgoBotApiController;
-Route::middleware('throttle:30,1')->prefix('rekgo-bot')->group(function(){
- Route::post('/escrows',[RekgoBotApiController::class,'create']);
- Route::post('/done',[RekgoBotApiController::class,'done']);
-});
+// RekGo bot endpoints have been consolidated in routes/web.php.
+// This file is no longer loaded by bootstrap/app.php.
