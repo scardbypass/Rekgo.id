@@ -1,5 +1,7 @@
 import 'dotenv/config';
-import makeWASocket,{useMultiFileAuthState,DisconnectReason} from '@whiskeysockets/baileys';
+import * as Baileys from '@whiskeysockets/baileys';
+const makeWASocket = Baileys.makeWASocket ?? Baileys.default?.makeWASocket ?? Baileys.default?.default ?? Baileys.default;
+const {useMultiFileAuthState,DisconnectReason} = Baileys;
 import pino from 'pino';
 const base=process.env.REKGO_API_URL,key=process.env.REKGO_BOT_API_KEY;
 if(!base||!key||key.length<32)throw Error('Configure REKGO_API_URL and REKGO_BOT_API_KEY');
@@ -13,6 +15,7 @@ async function api(path,payload){
 }
 async function run(){
  const {state,saveCreds}=await useMultiFileAuthState(authDir);
+ if(typeof makeWASocket!=='function') throw Error('Baileys socket export unavailable');
  const sock=makeWASocket({auth:state,logger:pino({level:'warn'}),printQRInTerminal:!process.env.REKGO_PAIR_PHONE});
  if(process.env.REKGO_PAIR_PHONE && !state.creds.registered){
   const phone=process.env.REKGO_PAIR_PHONE.replace(/\\D/g,'');
