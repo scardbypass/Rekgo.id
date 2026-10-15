@@ -1,6 +1,13 @@
 @extends('layout')
 @section('content')
-<div class="rg-page-heading"><a href="/admin/page/users">← Semua pengguna</a><h1>{{ $member->name }}</h1><p>{{ '@'.$member->username }} · {{ $member->role }}</p></div>
+<div class="rg-page-heading"><a href="/admin/page/users" class="rg-back-users"><span class="rg-back-users-icon" aria-hidden="true">←</span><span>Semua Pengguna</span></a><h1>{{ $member->name }}</h1><p>{{ '@'.$member->username }} · {{ $member->role }}</p></div>
+<style>
+.rg-back-users{display:inline-flex;align-items:center;gap:10px;width:max-content;max-width:100%;padding:9px 16px 9px 9px;margin-bottom:14px;border:1px solid rgba(130,175,255,.23);border-radius:999px;background:rgba(115,165,255,.11);color:inherit!important;text-decoration:none!important;font-size:13px;font-weight:650;letter-spacing:.01em;box-shadow:0 4px 16px rgba(0,0,0,.06);transition:background .2s ease,transform .2s ease,border-color .2s ease}
+.rg-back-users:hover,.rg-back-users:focus-visible{background:rgba(115,165,255,.22);border-color:rgba(130,175,255,.55);transform:translateY(-1px)}
+.rg-back-users-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(115,165,255,.2);font-size:19px;line-height:1}
+@media(max-width:480px){.rg-back-users{padding:7px 13px 7px 7px;font-size:13px}.rg-back-users-icon{width:28px;height:28px}}
+@media(prefers-reduced-motion:reduce){.rg-back-users{transition:none}}
+</style>
 <div class="grid rg-settings-grid"><section class="glass"><h2>Informasi pengguna</h2><p><strong>Email</strong><br>{{ $member->email }}</p><p><strong>Telepon</strong><br>{{ $member->phone ?: 'Tidak tersedia' }}</p><p><strong>Bergabung</strong><br>{{ $member->created_at?->format('d M Y H:i') }}</p><p><strong>Bank</strong><br>{{ $member->bank_code ?: 'Belum diatur' }} · {{ $member->bank_account ? '••••'.substr($member->bank_account,-4) : 'Tidak tersedia' }}</p><span class="pill">{{ $member->bank_verified_at ? 'Bank terverifikasi' : 'Bank belum terverifikasi' }}</span></section><section class="glass"><h2>Ringkasan saldo</h2><div class="rg-record"><span>Tersedia</span><strong>Rp{{ number_format($balance->available??0,0,',','.') }}</strong></div><div class="rg-record"><span>Tertunda</span><strong>Rp{{ number_format($balance->pending??0,0,',','.') }}</strong></div><div class="rg-record"><span>Terkunci</span><strong>Rp{{ number_format($balance->locked??0,0,',','.') }}</strong></div></section></div>
 @if(auth()->user()->role === 'super_admin')
 <section class="glass" style="margin-top:16px">
