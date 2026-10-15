@@ -27,6 +27,7 @@ final class ManualQrisController
         ]);
         abort_unless($payment->provider === 'qris_manual', 404);
         DB::transaction(function () use ($payment, $wallet, $request, $data) {
+            DB::table('payment_provider_settings')->where('provider', 'gopay_marc')->lockForUpdate()->first();
             $locked = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->status === 'pending', 409, 'Tagihan sudah diproses.');
             if ($data['decision'] === 'approve') {
