@@ -10,8 +10,8 @@ use Illuminate\Support\Str;
 class AdminUserAccountController {
  private function authorizeAction(Request $r,User $user):void {
   abort_unless($r->user()?->role==='super_admin',403);
-  abort_unless($user->role==='user',403,'Akun admin tidak dapat diubah lewat bantuan pengguna.');
-  abort_if($r->user()->id===$user->id,403);
+  abort_unless($user->role==='user' || $r->user()->id===$user->id,403,'Akun admin lain tidak dapat diubah.');
+  
  }
  private function confirm(Request $r):void {
   abort_unless(Hash::check((string)$r->input('admin_password'),$r->user()->password),422,'Password Super Admin tidak sesuai.');
