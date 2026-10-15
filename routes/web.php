@@ -25,6 +25,7 @@ Route::middleware(['auth','admin'])->prefix('admin/integrations')->group(functio
  Route::post('/bots',[\App\Http\Controllers\IntegrationAdminController::class,'addBot']);
  Route::post('/bots/{id}/toggle',[\App\Http\Controllers\IntegrationAdminController::class,'toggleBot'])->whereNumber('id');
  Route::post('/pg',[\App\Http\Controllers\IntegrationAdminController::class,'savePg']);
+ Route::post('/gopay/credentials',[\App\Http\Controllers\IntegrationAdminController::class,'saveGopayCredentials'])->middleware('throttle:5,1');
 });
 
 Route::middleware(['auth','admin','throttle:5,1'])->prefix('admin/integrations')->group(function(){
