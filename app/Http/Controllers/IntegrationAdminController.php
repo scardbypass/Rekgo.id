@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 class IntegrationAdminController {
  private function authorizeSuper(Request $r):void {abort_unless($r->user()?->role==='super_admin',403);}
  private function audit(Request $r,string $action,string $subject,int $id,array $meta=[]):void {
@@ -13,7 +14,33 @@ class IntegrationAdminController {
  public function index(Request $r){$this->authorizeSuper($r);return view('admin-integrations',['bots'=>DB::table('wa_bot_instances')->orderByDesc('id')->get(),'pg'=>DB::table('payment_provider_settings')->where('provider','gopay_marc')->first()]);}
  public function bots(Request $r){$this->authorizeSuper($r);return view('admin-integrations-bots',['bots'=>DB::table('wa_bot_instances')->orderByDesc('id')->get()]);}
  public function gopay(Request $r){$this->authorizeSuper($r);$disk=Storage::disk('local');$qr='';if($disk->exists('private/gopay-qris.enc')){try{$qr=Crypt::decryptString($disk->get('private/gopay-qris.enc'));}catch(\Throwable $e){report($e);}}return view('admin-integrations-gopay',['pg'=>DB::table('payment_provider_settings')->where('provider','gopay_marc')->first(),'credentials_saved'=>$disk->exists('private/gopay-merchant.enc'),'qris_text'=>$qr]);}
- public function deleteBot(Request $r,int $id){$this->authorizeSuper($r);$bot=DB::table('wa_bot_instances')->where('id',$id)->first();abort_unless($bot,404);abort_if($bot->status==='online',422,'Nonaktifkan dan putuskan koneksi bot sebelum menghapus.');DB::transaction(function()use($r,$id,$bot){DB::table('wa_bot_instances')->where('id',$id)->delete();$this->audit($r,'wa_bot.deleted','wa_bot',$id,['phone_suffix'=>substr($bot->phone,-4)]);});return redirect('/admin/integrations/bots')->with('ok','Bot berhasil dihapus dari daftar. Pastikan sesi pada bridge WhatsApp juga sudah dicabut.');}
+ public function botStatus(Request $r,int $id){
+  $this->authorizeSuper($r);
+  $bot=DB::table('wa_bot_instances')->where('id',$id)->first();abort_unless($bot,404);
+  $key=config('services.rekgo_bot.key');
+  if(!is_string($key)||strlen($key)<32)return response()->json(['connection'=>'not_configured','message'=>'REKGO_BOT_API_KEY belum disiapkan'],503);
+  try{
+   $response=Http::timeout(4)->withToken($key)->get('http://127.0.0.1:4320/status');
+   if(!$response->successful())return response()->json(['connection'=>'offline','message'=>'Service bot belum siap'],503);
+   return response()->json($response->json());
+  }catch(\Throwable $e){return response()->json(['connection'=>'offline','message'=>'Jalankan bot-rekgo pada VPS'],503);}
+ }
+ public function botPair(Request $r,int $id){
+  $this->authorizeSuper($r);
+  $bot=DB::table('wa_bot_instances')->where('id',$id)->first();abort_unless($bot,404);
+  abort_unless($bot->enabled,422,'Aktifkan bot dahulu.');
+  $key=config('services.rekgo_bot.key');
+  abort_unless(is_string($key)&&strlen($key)>=32,503,'API key bot belum siap');
+  try{
+   $response=Http::timeout(20)->withToken($key)->post('http://127.0.0.1:4320/pair',['phone'=>$bot->phone]);
+   if(!$response->successful())return back()->withErrors(['pair'=>'Pairing belum tersedia. Pastikan service bot berjalan dan belum login.']);
+   $code=$response->json('code');
+   abort_unless(is_string($code)&&$code!=='',502);
+   $this->audit($r,'wa_bot.pair_requested','wa_bot',$id);
+   return back()->with('pairing_code',$code)->with('pairing_bot_id',$id);
+  }catch(\Throwable $e){return back()->withErrors(['pair'=>'Tidak dapat meminta kode pairing dari service bot.']);}
+ }
+ public function deleteBot(Request $r,int $id){$this->authorizeSuper($r);$bot=DB::table('wa_bot_instances')->where('id',$id)->first();abort_unless($bot,404);abort_if($bot->status==='online',422,'Nonaktifkan dan putuskan koneksi bot sebelum menghapus.');DB::transaction(function()use($r,$id,$bot){$this->audit($r,'wa_bot.deleted','wa_bot',$id,['phone_suffix'=>substr($bot->phone,-4)]);DB::table('wa_bot_instances')->where('id',$id)->delete();});return redirect('/admin/integrations/bots')->with('ok','Bot berhasil dihapus dari daftar. Pastikan sesi pada bridge WhatsApp juga sudah dicabut.');}
  public function saveGopayCredentials(Request $r){
   $this->authorizeSuper($r);
   $d=$r->validate(['email'=>'required|email|max:254','password'=>'nullable|string|max:512']);
