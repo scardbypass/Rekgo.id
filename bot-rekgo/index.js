@@ -8,7 +8,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function api(path,payload){
  const response=await fetch(new URL(path,base),{method:'POST',headers:{'authorization':'Bearer '+key,'content-type':'application/json','accept':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
  const body=await response.json().catch(()=>({}));
- if(!response.ok)throw Error(body.message||'API error '+response.status);
+ if(!response.ok){const error=new Error(body.message||'API error '+response.status);error.status=response.status;throw error;}
  return body;
 }
 async function run(){
@@ -48,7 +48,7 @@ async function run(){
      const data=await api('/api/rekgo-bot/done',{group_jid:group,buyer_jid:sender,buyer_phone:buyerPhone});
      await sock.sendMessage(group,{text:'RekGo #'+data.id+': permintaan selesai diterima untuk pemeriksaan admin. Dana belum dicairkan.'});
     }
-   }catch(e){if(account && [401,403,404,422].some(code=>String(e.message).includes(String(code))))continue;if(account)console.warn('Account lookup failed:',e.message);else await sock.sendMessage(group,{text:'RekGo: '+String(e.message).slice(0,240)});}
+   }catch(e){if(account && e.status===403)continue;if(account)console.warn('Account lookup failed:',e.message);else await sock.sendMessage(group,{text:'RekGo: '+String(e.message).slice(0,240)});}
    await sleep(250);
   }
  });
