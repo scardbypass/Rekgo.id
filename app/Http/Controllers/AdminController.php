@@ -15,7 +15,7 @@ class AdminController {
  public function userDetail(Request $r,User $user){$this->finance($r);return view('admin-user-detail',['member'=>$user,'balance'=>Balance::where('user_id',$user->id)->first(),'payments'=>Payment::where('user_id',$user->id)->latest()->limit(20)->get(),'withdrawals'=>Withdrawal::where('user_id',$user->id)->latest()->limit(20)->get()]);}
  public function adjustBalance(Request $r,User $user,Wallet $w){
   $this->super($r);
-  $d=$r->validate(['operation'=>'required|in:add,subtract','amount'=>'required|integer|min:1|max:100000000','reason'=>'required|string|min:10|max:500','confirmation'=>'required|in:ADJUST']);
+  $d=$r->validate(['operation'=>'required|in:add,subtract','amount'=>'required|integer|min:1|max:100000000','reason'=>'required|string|min:10|max:500']);
   $delta=$d['operation']==='add'?(int)$d['amount']:-(int)$d['amount'];
   DB::transaction(function()use($r,$user,$w,$d,$delta){
    $balance=$w->balance($user->id);
