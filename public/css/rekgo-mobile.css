@@ -73,3 +73,13 @@
 .rg-shortcuts>a{box-shadow:0 8px 25px rgba(28,81,150,.08)}
 .rg-shortcuts>a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 @media(max-width:700px){.rg-dash-top{align-items:flex-start;gap:11px}.rg-dash-admin{padding:9px 12px;font-size:12px}.rg-dash-top .rg-page-title h1{font-size:26px}}
+
+/* Consistent button holders for page switches and actions */
+.rg-dash-admin,.rg-action-link{display:inline-flex!important;align-items:center!important;justify-content:center;gap:9px;text-decoration:none!important;border:1px solid rgba(65,118,200,.18)!important;border-radius:999px!important;background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(218,234,255,.78))!important;color:#155dc5!important;box-shadow:0 5px 15px rgba(34,90,155,.09),inset 0 1px rgba(255,255,255,.9)!important;font-weight:800;min-height:42px;padding:10px 16px!important;line-height:1.2;white-space:nowrap;transition:transform .2s ease,box-shadow .2s ease}
+.rg-dash-admin:hover,.rg-action-link:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(34,90,155,.15)!important}
+.rg-dash-admin:active,.rg-action-link:active{transform:scale(.97)}
+.rg-dash-admin span:first-child{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(23,105,244,.12)}
+.rg-dash-top{align-items:center}
+html[data-theme=dark] .rg-dash-admin,html[data-theme=dark] .rg-action-link{background:linear-gradient(145deg,rgba(35,67,105,.96),rgba(20,47,78,.94))!important;color:#c6e0ff!important;border-color:rgba(126,177,241,.25)!important}
+@media(max-width:700px){.rg-dash-admin{min-height:40px;font-size:12px;padding:9px 13px!important}.rg-action-link{min-height:36px;font-size:11px;padding:8px 11px!important}.rg-dash-top{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.rg-dash-admin,.rg-action-link{transition:none}}
