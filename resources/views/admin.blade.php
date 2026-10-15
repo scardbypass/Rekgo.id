@@ -6,7 +6,7 @@
 <div class="grid rg-admin-grid">
 <a class="glass" href="/admin/page/acc"><span class="rg-icon">↗</span><h2>Pencairan</h2><p class="muted">Persetujuan dan status WD</p></a>
 <a class="glass" href="/admin/page/users"><span class="rg-icon">♙</span><h2>Pengguna</h2><p class="muted">Daftar user dan seller</p></a>
-<a class="glass" href="/admin/page/fee"><span class="rg-icon">◇</span><h2>Biaya layanan</h2><p class="muted">Pengaturan tier fee</p></a>
+<a class="glass" href="/admin/banks"><span class="rg-icon">▣</span><h2>Manajemen Bank</h2><p class="muted">Tambah dan nonaktifkan bank</p></a><a class="glass" href="/admin/page/fee"><span class="rg-icon">◇</span><h2>Biaya layanan</h2><p class="muted">Pengaturan tier fee</p></a>
 <a class="glass" href="/admin/page/admins"><span class="rg-icon">♧</span><h2>Admin</h2><p class="muted">Kelola akses staf</p></a>
 <a class="glass" href="/admin/page/audits"><span class="rg-icon">◷</span><h2>Audit log</h2><p class="muted">Riwayat tindakan admin</p></a>
 <a class="glass" href="/admin/integrations"><span class="rg-icon">⌘</span><h2>Integrasi</h2><p class="muted">Bot dan payment gateway</p></a>
