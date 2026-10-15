@@ -73,9 +73,10 @@ async function run(){
    const text=content.trim();
    const sender=m.key.participant||'';
    const group=m.key.remoteJid;
-   const match=text.match(/^\/rekgo\s+(\d{1,10})$/i);
-   const done=/^rekber\s+done$/i.test(text);
-   if(!match&&!done&&!account)continue;
+   const command=parseCommand(text);
+   if(!command)continue;
+   const match=command.name==='rekgo' ? [null,String(command.amount)] : null;
+   const account=command.name==='akun';
    try{
     if(command.name==='menu'||command.name==='help'){
      const phone=sender.split('@')[0].replace(/\D/g,'');
