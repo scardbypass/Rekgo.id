@@ -22,7 +22,7 @@ const control=http.createServer(async(req,res)=>{
   return send(200,{connection:bridge.connection,qr_image:qrImage,updated_at:bridge.updatedAt});
  }
  if(req.method==='POST'&&req.url==='/pair'){
-  if(!currentSocket)return send(503,{error:'Bot socket belum siap'});
+  if(!currentSocket || bridge.connection==='offline')return send(503,{error:'Koneksi WhatsApp belum siap; periksa log bot'});
   if(bridge.connection==='online')return send(409,{error:'Bot sudah terhubung'});
   let raw='';for await(const part of req){raw+=part;if(raw.length>2048)return send(413,{error:'Too large'});}
   let phone;try{phone=JSON.parse(raw).phone;}catch{return send(422,{error:'Invalid JSON'});}
@@ -43,7 +43,7 @@ async function api(path,payload){
 async function run(){
  const {state,saveCreds}=await useMultiFileAuthState(authDir);
  if(typeof makeWASocket!=='function') throw Error('Baileys socket export unavailable');
- const sock=makeWASocket({auth:state,logger:pino({level:'info'})});
+ const sock=makeWASocket({auth:state,logger:pino({level:'warn'})});
  currentSocket=sock;
  if(process.env.REKGO_PAIR_PHONE && !state.creds.registered){
   const phone=process.env.REKGO_PAIR_PHONE.replace(/\\D/g,'');
@@ -61,7 +61,7 @@ async function run(){
   if(connection==='close'){bridge.connection='offline';bridge.qr=null;bridge.updatedAt=new Date().toISOString();console.warn('WhatsApp disconnected',lastDisconnect?.error?.output?.statusCode||'unknown');}
   if(connection==='close'){
    const code=lastDisconnect?.error?.output?.statusCode;
-   if(code===405){console.error('WA rejected registration (405). Stop retrying; check Baileys compatibility and session.');return;}
+   if(code===405){console.error('WA rejected registration (405). Check Baileys compatibility and session; exiting to prevent stale socket.');process.exitCode=1;control.close();return;}
    if(code!==DisconnectReason.loggedOut)setTimeout(run,10000);
   }
  });
