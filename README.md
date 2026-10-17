@@ -1,106 +1,166 @@
-# RekGo V4 — Developer Guide
+<div align="center">
 
-> **Status: development / staging. NOT approved for real-money escrow operations.** Code availability is not proof of operational readiness, legal compliance, or payment settlement.
+# 💠 RekGo V4
+### Sistem Rekber • Dashboard Laravel • Bot WhatsApp
 
-RekGo is an Indonesian escrow workflow prototype: Laravel web dashboard + MySQL/MariaDB + an independent Node.js WhatsApp bot (Baileys). The bot and web app share the **same business data via authenticated Laravel APIs**, not by giving the bot direct SQL write privileges.
+**Dokumentasi developer berbahasa Indonesia**
 
-## Technology and responsibilities
+[📖 Panduan Instalasi](#-instalasi-dari-nol) · [🧭 Alur Order](#-alur-order-rekber) · [🤖 Perintah Bot](#-daftar-perintah-bot) · [🛠️ Troubleshooting](#-troubleshooting)
 
-| Layer | Technology | Responsibility |
+</div>
+
+> ⚠️ **Status: pengembangan / staging.** Sistem belum dinyatakan siap menerima dana rekber sungguhan. Pembayaran otomatis, pencairan, integrasi merchant, dan pairing WhatsApp belum lulus uji end-to-end. Jangan menganggap tombol atau tampilan sebagai bukti uang telah diterima.
+
+## ✨ Apa itu RekGo?
+
+**RekGo by CeirGo** adalah aplikasi untuk mengelola transaksi perantara (rekber). Pembeli dan penjual bertransaksi dalam grup WhatsApp, sementara identitas akun, pencatatan transaksi, verifikasi dan audit dikelola website Laravel. **Database bisnis hanya satu**, yakni MySQL/MariaDB milik website. Bot WhatsApp adalah proses Node.js terpisah yang berkomunikasi dengan API Laravel berautentikasi, bukan mengubah saldo langsung lewat SQL.
+
+**Dokumentasi visual:** buka [docs/index.html](docs/index.html) di browser untuk panduan dengan CSS responsif. GitHub README tidak mendukung CSS kustom.
+
+## 🧱 Teknologi yang digunakan
+
+| Komponen | Bahasa / Teknologi | Tugas |
 |---|---|---|
-| Web / API | PHP >=8.2, Laravel 12, Blade | Authentication, users, escrow records, wallet/ledger, admin approval, audit |
-| Database | MySQL / compatible MariaDB | Source of truth; migrations in `database/migrations` |
-| WhatsApp | Node.js >=20, Baileys, Pino | Group commands, WhatsApp session, calls authenticated API |
-| Bot process | PM2 | Keep Node process running, restart/log management |
-| Merchant bridge | Node.js (optional) | GoPay merchant integration; proprietary SDK is not included |
-| Edge | Nginx + PHP-FPM + TLS | Public HTTPS for Laravel; internal bot control is loopback only |
+| Website & API | PHP 8.2+, Laravel 12, Blade | Login, akun, order, admin, audit, saldo |
+| Database | MySQL / MariaDB kompatibel | Sumber data utama |
+| Antarmuka | HTML, CSS, JavaScript | Dashboard responsif |
+| Bot WhatsApp | Node.js 20+, JavaScript ES Modules, Baileys | Pesan grup, pairing, command |
+| Pengelola bot | PM2 | Menjalankan dan mencatat log |
+| Web server | Nginx, PHP-FPM, HTTPS | Melayani website |
+| Payment bridge (opsional) | Node.js | Adapter merchant; **belum tervalidasi live** |
 
-**Do not run multiple bot processes against the same Baileys auth directory.**
-
-## Architecture
-
-```text
-User / Admin browser
-       |
-   HTTPS / Nginx
-       |
-  Laravel web/API ────────────── MySQL/MariaDB
-       ^                             ^
-       | authenticated API           | Laravel owns all writes
-       |
- Node.js RekGo bot (PM2)
-       |
- Baileys / WhatsApp groups
-
-Optional merchant bridge -> payment provider (NOT live-verified)
-```
-
-Bot API routes (defined in `routes/web.php`, under `/api/rekgo-bot`):
-- `POST /account`: registered user profile, masked bank and wallet balances.
-- `POST /escrows`: create an escrow **draft** idempotently using WhatsApp message request ID.
-- `POST /done`: accept a buyer completion request **only after escrow status is paid**; does **not** disburse funds.
-
-Each route requires `Authorization: Bearer <REKGO_BOT_API_KEY>`; the same >=32-character secret must be configured in Laravel and the bot. Protect this secret and rotate if exposed. Apply request throttling and review audit logs.
-
-## Repository map
+## 🏛️ Arsitektur sistem
 
 ```text
-app/Http/Controllers/   Laravel web and API controllers
-app/Models/             Eloquent data models
-app/Services/           Wallet and business services
-bootstrap/              Laravel bootstrap
-config/                 Application and service config
-database/migrations/    Database schema changes
-database/seeders/       Optional seed data (avoid demo seeds in production)
-resources/views/        Blade UI
-resources/css/          UI styles
-routes/web.php          Web and bot API endpoints
-routes/console.php      Scheduler commands (if configured)
-bot-rekgo/
-  index.js              WhatsApp socket, API bridge, message dispatch
-  plugins/commands.js   Command parser, menu, help
-  package.json          Node dependencies
-  ecosystem.config.js   PM2 single-process definition
-  auth/                 Private WhatsApp session (never commit)
-services/gopay-bridge/  Optional private merchant bridge
-storage/                Private Laravel runtime files
-tests/                  Laravel test suite
+Browser Pengguna / Admin ── HTTPS ── Nginx ── Laravel ── MySQL
+                                                ▲
+                                                │ API Bearer Token
+WhatsApp Grup ── Baileys ── Bot RekGo (PM2) ────┘
 ```
 
-## Installation: Debian 12 (new VPS)
+**Prinsip keamanan:** Laravel memegang validasi bisnis, saldo, status transaksi dan audit. Bot tidak menyimpan password MySQL. Port kontrol bot `127.0.0.1:4320` hanya boleh diakses lokal.
 
-1. Configure DNS for your domain to point at VPS. Open only SSH, HTTP and HTTPS; do **not** expose MySQL or bot control port 4320 to the Internet.
-2. Install system dependencies:
+## 👥 Daftar peran pengguna
+
+| Peran | Tanggung jawab | Kondisi saat ini |
+|---|---|---|
+| **Owner / Super Admin** | Pengaturan utama, audit, pengelolaan admin | Peran Laravel ada; **otorisasi Owner khusus bot belum ada** |
+| **Admin / Finance** | Memeriksa order, pembayaran, WD, sengketa | Sebagian dashboard tersedia; workflow lengkap belum diuji |
+| **Seller / Penjual** | Daftar akun, membuat grup, mengirim `/rekgo nominal` | Draft order via bot tersedia |
+| **Buyer / Pembeli** | Daftar akun, membayar setelah instruksi resmi, `rekber done` | Permintaan selesai hanya diterima setelah status `paid` |
+| **Bot RekGo** | Menerima command, memanggil API, mengirim notifikasi | Plugin dasar tersedia; integrasi WA belum terbukti stabil |
+
+Nomor Owner dapat ditulis sebagai `OWNER_NUMBER=62...` pada `bot-rekgo/.env`, **tetapi belum menjadi mekanisme otorisasi aktif**. Jangan mengandalkan variabel ini untuk melindungi perintah finansial.
+
+## 🧭 Alur order rekber
+
+| Tahap | Aksi | Sistem | Status |
+|---|---|---|---|
+| 1. Registrasi | Seller dan Buyer membuat akun RekGo | Laravel mencocokkan nomor WhatsApp terdaftar | Fondasi tersedia |
+| 2. Grup | Seller membuat grup WA berisi Buyer + Bot | Bot membaca command di grup | Tersedia dalam kode |
+| 3. Buat order | Seller mengetik `/rekgo 10000` | Bot kirim API dengan ID pesan; Laravel membuat escrow `pending` dan menghitung fee | **Draft tersedia** |
+| 4. Instruksi bayar | Buyer menunggu nominal dan tujuan pembayaran sah | Harus diterbitkan oleh adapter pembayaran terverifikasi | **Belum lengkap** |
+| 5. Verifikasi dana | Provider mengonfirmasi referensi + nominal | Rekonsiliasi dan audit wajib sebelum status `paid` | **Belum teruji live** |
+| 6. Barang/jasa | Seller memenuhi pesanan | Konfirmasi oleh pihak terkait | Prosedur operasional |
+| 7. Konfirmasi | Buyer mengetik `rekber done` | API memeriksa bahwa escrow sudah `paid` dan buyer bukan seller | Sebagian tersedia |
+| 8. Review | Admin memeriksa transaksi | Audit permintaan dibuat; **tidak otomatis mencairkan dana** | Sebagian tersedia |
+| 9. Pencairan | Admin/penyedia pembayaran memproses settlement | Butuh konfirmasi transfer dan ledger valid | **Belum lengkap** |
+| 10. Sengketa | Buyer/Seller melapor jika ada masalah | Perlu SOP bukti, mediasi, refund | **Belum lengkap** |
+
+**Jam layanan admin yang direncanakan:** 09.00–20.00 WIB. Permintaan di luar jam tersebut diperiksa pada periode layanan berikutnya. Belum ada jaminan scheduler otomatis untuk kebijakan ini.
+
+### Contoh percakapan grup
+
+```text
+Seller : /rekgo 10000
+Bot    : 💠 RekGo • Transaksi #123
+         Nominal: Rp10.000
+         Biaya layanan: sesuai konfigurasi
+         Status: Menunggu pembayaran
+         ⚠️ Jangan transfer sebelum instruksi resmi terverifikasi.
+
+Buyer  : rekber done
+Bot    : Permintaan selesai diterima untuk pemeriksaan admin
+         (hanya bila status pembayaran sudah paid).
+```
+
+## 🤖 Daftar perintah bot
+
+| Perintah | Dikirim di | Hasil | Implementasi |
+|---|---|---|---|
+| `/menu`, `/start` | Grup | Menu dikirim via pesan pribadi | Ada |
+| `/help`, `bantuan` | Grup | Panduan penggunaan via pesan pribadi | Ada |
+| `akun`, `/akun` | Grup | Profil, saldo, bank tersamarkan, statistik via pesan pribadi | Ada |
+| `/rekgo 10000` | Grup | Membuat draft order; nominal minimum API Rp1.000 | Ada |
+| `rekber done` | Grup | Meminta pemeriksaan setelah pembayaran terverifikasi | Ada |
+| `/status` | — | Rencana cek status transaksi | **Belum ada** |
+| `/riwayat` | — | Rencana riwayat transaksi | **Belum ada** |
+| `/admin` | — | Rencana fitur khusus admin/owner | **Belum ada** |
+
+**Catatan:** Listener saat ini hanya menerima pesan **grup**; pesan pribadi tidak diproses sebagai command. Untuk `akun`, balasan dikirim ke chat pribadi pengirim. Akun tidak terdaftar ditolak oleh API Laravel. Nomor dengan JID `@lid` mungkin memerlukan resolusi nomor yang belum ditangani.
+
+## 🗂️ Struktur folder
+
+```text
+/rekgo
+├── app/
+│   ├── Http/Controllers/      # Controller web, admin, bot API
+│   ├── Models/                # Model database
+│   └── Services/              # Wallet dan aturan bisnis
+├── bootstrap/                 # Bootstrap Laravel
+├── config/                    # Konfigurasi aplikasi
+├── database/migrations/       # Perubahan skema
+├── resources/                 # Blade dan CSS
+├── routes/web.php             # Web dan API bot
+├── public/                    # Document root Nginx
+├── storage/                   # Log dan file privat
+├── services/gopay-bridge/     # Bridge opsional, tidak siap live
+├── bot-rekgo/
+│   ├── index.js               # Socket WA + dispatcher
+│   ├── plugins/commands.js    # Parser command + menu
+│   ├── tests/commands.test.js # Unit test
+│   ├── ecosystem.config.js    # PM2
+│   ├── package.json
+│   ├── .env                   # RAHASIA, jangan commit
+│   └── auth/                  # Sesi WA, jangan commit
+└── docs/index.html            # Dokumentasi visual
+```
+
+## 🚀 Instalasi dari nol
+
+### 1. Siapkan VPS Debian 12
+
+Butuh domain yang mengarah ke VPS, SSH, Nginx, MariaDB, PHP 8.2+, Composer 2, Node.js 20+ dan PM2.
 
 ```bash
 sudo apt update
 sudo apt install -y git curl unzip nginx mariadb-server composer \
-  php-cli php-fpm php-mysql php-mbstring php-xml php-curl php-zip php-bcmath
+ php-cli php-fpm php-mysql php-mbstring php-xml php-curl php-zip php-bcmath
 php -v
-node -v    # install supported Node >=20 if not present
+node -v
 ```
 
-3. Clone and install PHP dependencies:
+Jika Node belum terpasang atau versinya di bawah 20, instal versi LTS yang didukung dari sumber tepercaya sebelum melanjutkan.
+
+### 2. Clone dan instal Laravel
 
 ```bash
-sudo mkdir -p /rekgo
-sudo chown "$USER":"$USER" /rekgo
 git clone https://github.com/scardbypass/Rekgo.id.git /rekgo
 cd /rekgo
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 ```
 
-4. Create an **empty** MySQL database and dedicated least-privilege user. Example for a new install (replace placeholders; do not paste real passwords into chat):
+**Buat database kosong dan akun SQL khusus:**
 
 ```sql
 CREATE DATABASE rekgo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'rekgo_app'@'localhost' IDENTIFIED BY 'CHANGE_TO_STRONG_UNIQUE_PASSWORD';
+CREATE USER 'rekgo_app'@'localhost' IDENTIFIED BY 'GANTI_PASSWORD_KUAT';
 GRANT ALL PRIVILEGES ON rekgo.* TO 'rekgo_app'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-5. Edit `/rekgo/.env`:
+Isi `/rekgo/.env`:
 
 ```dotenv
 APP_NAME=RekGo
@@ -113,149 +173,141 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=rekgo
 DB_USERNAME=rekgo_app
-DB_PASSWORD=CHANGE_ME
-REKGO_BOT_API_KEY=GENERATE_A_NEW_RANDOM_SECRET_MIN_32_CHARS
+DB_PASSWORD=GANTI_PASSWORD_KUAT
+REKGO_BOT_API_KEY=BUAT_SECRET_ACAK_MINIMAL_32_KARAKTER
 GOPAY_LIVE_VERIFIED=false
 ```
 
-For a **new** installation only, run `php artisan key:generate`. **Never regenerate an existing production APP_KEY**: previously encrypted data/cookies may become unreadable. Preserve existing `.env` when upgrading.
+**Hanya untuk instalasi BARU:**
 
 ```bash
 cd /rekgo
-php artisan key:generate   # NEW installation ONLY
+php artisan key:generate
 php artisan migrate --force
 php artisan storage:link
 php artisan optimize:clear
 php artisan route:list
-php artisan migrate:status
 ```
 
-6. Configure Nginx: domain `rekgo.my.id`, document root **`/rekgo/public`**, index `index.php`, PHP-FPM Unix socket matching the installed PHP version, Laravel `try_files $uri $uri/ /index.php?$query_string`. Configure TLS with your certificate/ACME provider. PHP-FPM must have write access to `storage` and `bootstrap/cache` only; never serve the project root. Test `sudo nginx -t` before reload.
+**Upgrade VPS lama:** jangan menimpa `.env`, jangan menjalankan `key:generate` ulang, dan backup database sebelum migrasi. Jangan menjalankan seeder demo pada data finansial asli.
 
-7. Scheduler (for Laravel jobs requiring it):
+### 3. Nginx, PHP-FPM, dan HTTPS
+
+Konfigurasikan server name `rekgo.my.id`, `root /rekgo/public;`, `index index.php;`, aturan Laravel `try_files $uri $uri/ /index.php?$query_string;`, dan `fastcgi_pass` ke socket PHP-FPM yang sesuai. Aktifkan HTTPS dan pastikan Nginx **tidak** mengakses file `.env`. Folder `storage` dan `bootstrap/cache` harus writable oleh PHP-FPM.
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Tambahkan cron Laravel:
 
 ```cron
 * * * * * cd /rekgo && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Do not enable live GoPay/QRIS settlement before provider integration, journal verification, amount/reference matching, duplicate/late-payment handling, reconciliation and audit have been tested.
-
-## Install independent WhatsApp bot
+### 4. Instal Bot WhatsApp terpisah
 
 ```bash
 cd /rekgo/bot-rekgo
 npm install
+nano .env
 ```
 
-Create `/rekgo/bot-rekgo/.env` (do not commit):
+Isi `/rekgo/bot-rekgo/.env`:
 
 ```dotenv
 REKGO_API_URL=https://rekgo.my.id
-REKGO_BOT_API_KEY=EXACT_SAME_SECRET_AS_LARAVEL
+REKGO_BOT_API_KEY=SECRET_YANG_SAMA_PERSIS_DENGAN_LARAVEL
 REKGO_AUTH_DIR=./auth
 REKGO_BOT_CONTROL_PORT=4320
 REKGO_PAIR_PHONE=
 OWNER_NUMBER=62XXXXXXXXXXX
 ```
 
-- `REKGO_API_URL` must be the **base URL**, not `/api`.
-- `REKGO_PAIR_PHONE` optional, format `62...`; leaving blank avoids automatic pairing attempts.
-- `OWNER_NUMBER` is **reserved for future owner authorization**; it is not enforced by the current code.
-- Do not put DB credentials in bot `.env`; all financial operations must pass Laravel validation.
-- Ensure `bot-rekgo/auth/` is private and excluded from Git.
-
-Start one PM2 process (ecosystem file assumes deployment path `/rekgo/bot-rekgo`):
+`REKGO_PAIR_PHONE` dapat dikosongkan untuk menghindari percobaan pairing otomatis. `OWNER_NUMBER` belum diimplementasikan sebagai hak akses. **Jangan menambahkan password database ke file bot.**
 
 ```bash
-npm install -g pm2
 cd /rekgo/bot-rekgo
+npm install -g pm2
 node --check index.js
 node --check plugins/commands.js
+npm test
 pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
-pm2 status
 pm2 logs rekgo-bot --lines 50
 ```
 
-PM2 does not compile/build JavaScript; it runs the Node entrypoint. On upgrade, `pm2 restart rekgo-bot --update-env`. Execute any command printed by `pm2 startup`.
+Ikuti perintah tambahan yang dicetak `pm2 startup`. PM2 tidak membutuhkan proses build untuk JavaScript ini. Pastikan **hanya satu proses** menggunakan folder `auth/` yang sama.
 
-**WhatsApp pairing:** Baileys uses a private session in `auth/`. The bot exposes a Bearer-protected loopback control service at `127.0.0.1:4320`; admin UI may request a code, but pairing is **not verified operational**. HTTP 405 from WhatsApp is an upstream registration failure, not evidence that the Laravel database is broken. Check dependency compatibility and logs; back up auth before any session reset. Do not spam repeated pairing requests.
-
-## WhatsApp commands — currently implemented
-
-| Command | Who / where | Current behavior |
-|---|---|---|
-| `/menu`, `/start` | Registered group participant | Sends menu in DM |
-| `/help`, `bantuan` | Registered group participant | Sends usage guide in DM |
-| `akun`, `/akun` | Registered group participant | Sends account information in DM |
-| `/rekgo 10000` | Registered seller, group | Creates pending escrow draft; **no verified payment instructions** |
-| `rekber done` | Registered buyer, group | Requests admin review only when escrow is paid; **no payout** |
-
-Account and menu commands currently trigger **from groups** (responses delivered by DM); private-chat command handling is not implemented. Registration is checked through Laravel. The bot does not currently enforce an owner command permission system. Plugin registry is a foundation; separate modules for status/history/disputes/admin are not implemented.
-
-## Intended escrow workflow vs current implementation
-
-1. Seller and buyer register on website using matching WhatsApp numbers.
-2. Seller creates a group with buyer and RekGo bot.
-3. Seller sends `/rekgo <amount>`. Laravel validates seller, fee and request id; creates **pending** escrow.
-4. **Not yet complete:** provider-verified payment instruction, real settlement detection, and buyer/seller-specific confirmations.
-5. After an escrow is marked `paid` by a trusted, verified process, buyer can send `rekber done`.
-6. Laravel records an audit event for admin review. **No automatic fund release**.
-7. Admin working hours are 09:00–20:00 WIB; outside hours follow next business window (operational policy, not a guaranteed implemented scheduler).
-
-## Troubleshooting
-
-| Symptom | Check |
-|---|---|
-| Laravel HTTP 500 | `tail -n 100 /rekgo/storage/logs/laravel.log`; PHP-FPM logs; migration status |
-| Bot PM2 stopped | `pm2 logs rekgo-bot --lines 100`; Node version, missing `.env` |
-| Bot HTTP 401 | Laravel and bot `REKGO_BOT_API_KEY` mismatch; clear Laravel config cache |
-| Bot HTTP 503 | Socket offline; check `pm2 logs` and WhatsApp session |
-| WhatsApp 405 | WhatsApp/Baileys registration or protocol problem; not solved by PM2 alone |
-| `/akun` no reply | Group-only listener, number format, account registration, API response, DM privacy |
-| Payment not marked paid | Expected until a verified settlement adapter is enabled/tested |
-
-Useful diagnostics:
+### 5. Uji sistem
 
 ```bash
 cd /rekgo
-php artisan optimize:clear
 php artisan migrate:status
+php artisan route:list
 php artisan test
+
 cd /rekgo/bot-rekgo
 node --check index.js
 node --check plugins/commands.js
+npm test
+pm2 list
 pm2 logs rekgo-bot --lines 50
 ```
 
-Never share raw `.env`, authentication keys, database passwords, pairing codes or WhatsApp auth files. Rotate any secrets exposed in screenshots or logs; do not rotate `APP_KEY` without a deliberate data migration and recovery plan.
+Lakukan uji akun dan transaksi di database staging, bukan uang sungguhan. Pairing WhatsApp dengan Baileys belum diverifikasi berhasil; error `405` merupakan masalah koneksi/registrasi WA yang **tidak diselesaikan hanya dengan PM2**.
 
-## Deployment update / rollback
+## 🔐 Keamanan wajib
+
+- Jangan commit `.env`, sesi WA `auth/`, password, OTP, atau token.
+- Jika rahasia muncul di screenshot, rotasi API key dan password DB. **Jangan asal mengganti APP_KEY Laravel** karena data terenkripsi dapat rusak.
+- Gunakan HTTPS; batasi MySQL dan port kontrol bot ke localhost.
+- Semua aksi keuangan melalui API Laravel, validasi server-side, audit dan idempotensi.
+- Jangan menganggap draft escrow atau QR yang muncul sebagai bukti pembayaran.
+- Butuh verifikasi penyedia pembayaran, rekonsiliasi, refund, penyelesaian sengketa, dan pemeriksaan izin sebelum menerima dana pelanggan.
+
+## 🛠️ Troubleshooting
+
+| Masalah | Pemeriksaan |
+|---|---|
+| Website HTTP 500 | `tail -n 100 /rekgo/storage/logs/laravel.log`, PHP-FPM, `php artisan migrate:status` |
+| Bot offline | `pm2 list`, `pm2 logs rekgo-bot --lines 100` |
+| API bot 401 | Samakan `REKGO_BOT_API_KEY` Laravel dan bot; `php artisan optimize:clear` |
+| API bot 503 | Periksa socket WA, proses PM2, dan status koneksi |
+| WhatsApp 405 | Periksa kompatibilitas Baileys/WA dan sesi; backup `auth/` sebelum reset |
+| `akun` diam | Command hanya di grup; cek nomor terdaftar, JID, koneksi API, privasi DM |
+| Tidak ada instruksi pembayaran | Memang belum tersedia adapter pembayaran live yang terverifikasi |
+| Perubahan tidak muncul | `git pull --ff-only`, `php artisan optimize:clear`, `pm2 restart rekgo-bot --update-env` |
+
+## ♻️ Update dan pemulihan
 
 ```bash
 cd /rekgo
 git status --short
+# Backup DB + .env + sesi WA terlebih dahulu
 git pull --ff-only origin main
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 php artisan optimize:clear
 cd /rekgo/bot-rekgo
 npm install
-node --check index.js
+npm test
 pm2 restart rekgo-bot --update-env
 ```
 
-Back up the DB and private state before deploying. Migration rollback may be destructive; use a tested database restore plan rather than blindly running `migrate:rollback` on live funds.
+Rollback migrasi finansial bisa merusak data; gunakan prosedur backup dan restore yang telah diuji, bukan `migrate:rollback` sembarangan.
 
-## Quality / release gates
+## 🧪 Checklist developer berikutnya
 
-- Run PHP lint and `php artisan test` against an isolated test database.
-- Run `node --check` for all bot JS modules; add unit tests for command parsing and API failure paths.
-- Test login, permissions, seller/buyer identity, duplicate WhatsApp events, concurrency and audit integrity.
-- Test Baileys pairing with a test number, reconnect behavior, session persistence and privacy.
-- Test reconciliation against merchant sandbox, late/duplicate callbacks, wrong amounts, refunds, and admin review.
-- Test backups, restore, 2FA/admin hardening, monitoring and incident response.
-- Obtain legal/payment provider approval before accepting real customer escrow funds.
+- [ ] Uji semua route, controller, model, migrasi dan otorisasi pada database terisolasi.
+- [ ] Uji pairing QR/kode dan reconnect WA dengan nomor uji.
+- [ ] Implementasikan permission Owner/Admin pada bot, bukan hanya `.env`.
+- [ ] Pecah handler bot ke plugin terpisah dan tambahkan test integrasi.
+- [ ] Buat API status/riwayat, notifikasi admin, sengketa dan refund.
+- [ ] Pastikan pembayaran dan pencairan hanya setelah bukti settlement yang sah.
+- [ ] Uji duplikasi pesan, balapan transaksi, keamanan sesi, backup dan restore.
+- [ ] Tinjau izin dan kepatuhan operasional jasa rekber.
 
-**Verification note:** This guide documents code reviewed in GitHub; it is not evidence of a successful VPS deployment or end-to-end test.
+**Catatan verifikasi:** Dokumentasi ini didasarkan pada kode yang ditinjau di GitHub. Tidak berarti instalasi VPS atau pembayaran live telah diuji dan berhasil.
