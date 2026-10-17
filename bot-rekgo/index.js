@@ -46,7 +46,7 @@ async function run(){
  const sock=makeWASocket({auth:state,logger:pino({level:'warn'})});
  currentSocket=sock;
  if(process.env.REKGO_PAIR_PHONE && !state.creds.registered){
-  const phone=process.env.REKGO_PAIR_PHONE.replace(/\\D/g,'');
+  const phone=process.env.REKGO_PAIR_PHONE.replace(/\D/g,'');
   if(!/^62[0-9]{8,13}$/.test(phone))throw Error('REKGO_PAIR_PHONE must start with 62');
   setTimeout(async()=>{
    try{const code=await sock.requestPairingCode(phone);console.log('WhatsApp pairing code:',code);}
@@ -84,12 +84,12 @@ async function run(){
      await api('/api/rekgo-bot/account',{phone});
      await sock.sendMessage(sender,{text:command.name==='menu'?menuText():helpText()});
     }else if(account){
-     const phone=sender.split('@')[0].replace(/\\D/g,'');
+     const phone=sender.split('@')[0].replace(/\D/g,'');
      if(!phone)continue;
      const data=await api('/api/rekgo-bot/account',{phone});
      const rupiah=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
      const lines=['💠 RekGo • Account Center','Nama: '+data.name,'Username: @'+data.username,'','Saldo tersedia: '+rupiah(data.balance.available),'Saldo tertunda: '+rupiah(data.balance.pending),'Saldo terkunci: '+rupiah(data.balance.locked),'Total saldo: '+rupiah(data.balance.total),'','Bank: '+data.bank.name,'Rekening: '+data.bank.account_masked,'Status: '+(data.bank.verified?'Terverifikasi':'Belum diverifikasi'),'','Total transaksi: '+data.transactions.total,'WD tertunda: '+data.withdrawals.pending,'Total WD: '+data.withdrawals.total,'WD berhasil: '+rupiah(data.withdrawals.total_paid)];
-     await sock.sendMessage(sender,{text:lines.join('\\n')});
+     await sock.sendMessage(sender,{text:lines.join('\n')});
     }else if(match){
      const phone=sender.split('@')[0].replace(/\D/g,'');
      if(!phone)throw Error('Nomor seller tidak tersedia; gunakan akun WhatsApp bernomor telepon.');
