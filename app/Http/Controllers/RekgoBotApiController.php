@@ -46,13 +46,17 @@ class RekgoBotApiController {
  public function done(Request $r,Wallet $wallet){
   $this->authorizeBot($r);
   $d=$r->validate(['group_jid'=>'required|string|max:150','buyer_jid'=>'required|string|max:150','buyer_phone'=>'required|regex:/^[0-9]{9,16}$/']);
-  $buyer=$this->registeredUser($d['buyer_phone']);
   $record=DB::table('rekgo_bot_requests')->where('group_jid',$d['group_jid'])->orderByDesc('id')->first();
   abort_unless($record,404,'Tidak ada transaksi di grup ini.');
-  abort_if($buyer->id===$record->seller_id,403,'Seller tidak boleh mengonfirmasi transaksi sendiri.');
+  abort_if($d['buyer_jid']===$record->seller_jid,403,'Seller tidak boleh mengonfirmasi transaksi sendiri.');
+  $seller=User::findOrFail($record->seller_id);
+  $sellerPhone=preg_replace('/\\D+/','',(string)$seller->phone);
+  $buyerPhone=preg_replace('/\\D+/','',$d['buyer_phone']);
+  $normalize=static fn(string $number):string => str_starts_with($number,'0')?'62'.substr($number,1):$number;
+  abort_if($normalize($buyerPhone)===$normalize($sellerPhone),403,'Seller tidak boleh mengonfirmasi transaksi sendiri.');
   $escrow=Escrow::findOrFail($record->escrow_id);
   abort_unless($escrow->status==='paid',409,'Pembayaran belum terverifikasi atau status transaksi tidak sesuai.');
-  $wallet->audit(null,'bot.buyer_done_requested','escrow',$escrow->id,['buyer_jid'=>$d['buyer_jid'],'buyer_id'=>$buyer->id]);
+  $wallet->audit(null,'bot.buyer_done_requested','escrow',$escrow->id,['buyer_jid'=>$d['buyer_jid'],'buyer_phone_suffix'=>substr($buyerPhone,-4)]);
   return response()->json(['id'=>$escrow->id,'status'=>$escrow->status,'message'=>'Permintaan selesai dicatat untuk pemeriksaan admin. Dana belum dicairkan.']);
  }
 }
