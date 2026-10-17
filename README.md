@@ -47,7 +47,7 @@ WhatsApp Grup ── Baileys ── Bot RekGo (PM2) ────┘
 | **Owner / Super Admin** | Pengaturan utama, audit, pengelolaan admin | Peran Laravel ada; **otorisasi Owner khusus bot belum ada** |
 | **Admin / Finance** | Memeriksa order, pembayaran, WD, sengketa | Sebagian dashboard tersedia; workflow lengkap belum diuji |
 | **Seller / Penjual** | Daftar akun, membuat grup, mengirim `/rekgo nominal` | Draft order via bot tersedia |
-| **Buyer / Pembeli** | Daftar akun, membayar setelah instruksi resmi, `rekber done` | Permintaan selesai hanya diterima setelah status `paid` |
+| **Buyer / Pembeli** | **Tidak perlu akun**, membayar setelah instruksi resmi, `rekber done` | Permintaan selesai hanya diterima setelah status `paid` |
 | **Bot RekGo** | Menerima command, memanggil API, mengirim notifikasi | Plugin dasar tersedia; integrasi WA belum terbukti stabil |
 
 Nomor Owner dapat ditulis sebagai `OWNER_NUMBER=62...` pada `bot-rekgo/.env`, **tetapi belum menjadi mekanisme otorisasi aktif**. Jangan mengandalkan variabel ini untuk melindungi perintah finansial.
@@ -56,13 +56,13 @@ Nomor Owner dapat ditulis sebagai `OWNER_NUMBER=62...` pada `bot-rekgo/.env`, **
 
 | Tahap | Aksi | Sistem | Status |
 |---|---|---|---|
-| 1. Registrasi | Seller dan Buyer membuat akun RekGo | Laravel mencocokkan nomor WhatsApp terdaftar | Fondasi tersedia |
+| 1. Registrasi | Hanya Seller membuat akun RekGo; Buyer tidak perlu akun | Laravel memvalidasi akun Seller; Buyer cukup menggunakan WhatsApp | Fondasi tersedia |
 | 2. Grup | Seller membuat grup WA berisi Buyer + Bot | Bot membaca command di grup | Tersedia dalam kode |
 | 3. Buat order | Seller mengetik `/rekgo 10000` | Bot kirim API dengan ID pesan; Laravel membuat escrow `pending` dan menghitung fee | **Draft tersedia** |
 | 4. Instruksi bayar | Buyer menunggu nominal dan tujuan pembayaran sah | Harus diterbitkan oleh adapter pembayaran terverifikasi | **Belum lengkap** |
 | 5. Verifikasi dana | Provider mengonfirmasi referensi + nominal | Rekonsiliasi dan audit wajib sebelum status `paid` | **Belum teruji live** |
 | 6. Barang/jasa | Seller memenuhi pesanan | Konfirmasi oleh pihak terkait | Prosedur operasional |
-| 7. Konfirmasi | Buyer mengetik `rekber done` | API memeriksa bahwa escrow sudah `paid` dan buyer bukan seller | Sebagian tersedia |
+| 7. Konfirmasi | Buyer mengetik `rekber done` | API memeriksa escrow sudah `paid` dan pengirim bukan seller; akun Buyer tidak diwajibkan | Sebagian tersedia |
 | 8. Review | Admin memeriksa transaksi | Audit permintaan dibuat; **tidak otomatis mencairkan dana** | Sebagian tersedia |
 | 9. Pencairan | Admin/penyedia pembayaran memproses settlement | Butuh konfirmasi transfer dan ledger valid | **Belum lengkap** |
 | 10. Sengketa | Buyer/Seller melapor jika ada masalah | Perlu SOP bukti, mediasi, refund | **Belum lengkap** |
@@ -97,7 +97,7 @@ Bot    : Permintaan selesai diterima untuk pemeriksaan admin
 | `/riwayat` | — | Rencana riwayat transaksi | **Belum ada** |
 | `/admin` | — | Rencana fitur khusus admin/owner | **Belum ada** |
 
-**Catatan:** Listener saat ini hanya menerima pesan **grup**; pesan pribadi tidak diproses sebagai command. Untuk `akun`, balasan dikirim ke chat pribadi pengirim. Akun tidak terdaftar ditolak oleh API Laravel. Nomor dengan JID `@lid` mungkin memerlukan resolusi nomor yang belum ditangani.
+**Catatan:** Listener saat ini hanya menerima pesan **grup**; pesan pribadi tidak diproses sebagai command. Untuk `akun`, balasan dikirim ke chat pribadi pengirim. Perintah akun dan pembuatan order memerlukan akun Seller terdaftar; Buyer tamu boleh mengirim `rekber done` setelah pembayaran terverifikasi. Nomor dengan JID `@lid` mungkin memerlukan resolusi nomor yang belum ditangani.
 
 ## 🗂️ Struktur folder
 
